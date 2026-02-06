@@ -14,7 +14,10 @@ export type ModuleKey =
 export function canAccessModule(user: SessionUser | null, module: ModuleKey) {
   if (!user) return false;
 
-  // Gerencia ve todo
+  // Si el módulo es Gerencia, SOLO Gerencia entra
+  if (module === "GERENCIA") return user.role === "GERENCIA";
+
+  // Gerencia ve todo (para los demás módulos)
   if (user.role === "GERENCIA") return true;
 
   // Accesos por rol
@@ -22,10 +25,10 @@ export function canAccessModule(user: SessionUser | null, module: ModuleKey) {
   if (module === "ADMINISTRACION") return user.role === "ADMINISTRACION";
   if (module === "LOGISTICA") return user.role === "LOGISTICA";
   if (module === "INGENIERIA") return user.role === "INGENIERIA";
-  if (module === "GERENCIA") return user.role === "GERENCIA";
 
   return false;
 }
+
 
 /**
  * Controla si puede ver datos sensibles: costos, descuentos, márgenes, etc.
