@@ -1,4 +1,4 @@
-export type Role = "ADMINISTRACION" | "LOGISTICA" | "INGENIERIA" | "GERENCIA" | "OTRO";
+
 
 export type SessionUser = {
   id: number;
@@ -13,3 +13,10 @@ export type AuthState = {
   user: SessionUser | null;
   token: string | null; // placeholder para futuro JWT
 };
+
+export type Role =
+  | "ADMINISTRACION"
+  | "LOGISTICA"
+  | "INGENIERIA"
+  | "GERENCIA"
+  | "OTRO";
