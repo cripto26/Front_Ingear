@@ -1,7 +1,5 @@
 ﻿
-
-
-===== D:\Front\src\App.tsx =====
+==================== FILE: D:\Front\src\App.tsx ====================
 
 import { Routes, Route, Navigate } from "react-router-dom";
 
@@ -43,7 +41,7 @@ export default function App() {
 }
 
 
-===== D:\Front\src\main.tsx =====
+==================== FILE: D:\Front\src\main.tsx ====================
 
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -64,7 +62,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 );
 
 
-===== D:\Front\src\styles.css =====
+==================== FILE: D:\Front\src\styles.css ====================
 
 :root {
   --bg: #0b1220;
@@ -152,14 +150,15 @@ p { margin: 8px 0; }
 .form { display: grid; gap: 10px; margin-top: 10px; }
 label { display: grid; gap: 6px; color: var(--muted); font-size: 13px; }
 input, textarea {
-  background: rgba(255,255,255,0.05);
+ background: rgba(255,255,255,0.05);
   border: 1px solid var(--line);
   color: var(--text);
   padding: 10px 12px;
   border-radius: 12px;
   outline: none;
 }
-input:focus, textarea:focus { border-color: rgba(20,184,166,0.55); }
+input:focus, textarea:focus, select:focus { border-color: rgba(20,184,166,0.55); }
+
 
 .btn, .btnPrimary, .btnDanger {
   padding: 10px 12px;
@@ -239,8 +238,267 @@ th { text-align: left; color: var(--muted); font-weight: 700; font-size: 12px; }
   margin-top: 8px;
 }
 
+/* === Dashboard (tomado/adaptado de home-dark-dashboard.html) === */
+.sidebar,
+.topbar {
+  backdrop-filter: blur(10px);
+}
 
-===== D:\Front\src\api\clienteApi.ts =====
+/* Topbar chips (izquierda) */
+.chips {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.chip {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* User box (derecha) */
+.user {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.uinfo {
+  line-height: 1.1;
+  text-align: right;
+}
+.uinfo b {
+  display: block;
+}
+.uinfo span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line);
+}
+
+/* Home content (dashboard) */
+.grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 1.3fr 0.7fr;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+.kpi {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 12px;
+}
+.kpi .tag {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.kpi .val {
+  font-size: 20px;
+  font-weight: 800;
+  margin-top: 6px;
+}
+.spark {
+  height: 26px;
+  border-radius: 10px;
+  margin-top: 10px;
+  background: linear-gradient(
+    90deg,
+    rgba(20, 184, 166, 0),
+    rgba(20, 184, 166, 0.22),
+    rgba(20, 184, 166, 0.05)
+  );
+  border: 1px solid rgba(20, 184, 166, 0.18);
+}
+
+.modules {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+.module {
+  display: block;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.module .rowLine {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.badge {
+  font-size: 12px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+.module h3 {
+  margin: 10px 0 0;
+  font-size: 14px;
+}
+.module p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* List (panel derecho) */
+.list {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 10px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+.item b {
+  display: block;
+  font-size: 13px;
+}
+.item span {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Responsive como el mockup */
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Opcional: si no existen en tu styles.css */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 1100px) { .grid2 { grid-template-columns: 1fr; } }
+
+.formGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.formGrid .span2 { grid-column: span 2; }
+
+.row { display: flex; gap: 10px; align-items: center; }
+.pill { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+
+.tableWrap { overflow: auto; margin-top: 10px; border-radius: 14px; border: 1px solid var(--line); }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.table thead th { position: sticky; top: 0; background: rgba(11,18,32,0.95); z-index: 2; }
+.tdWrap { max-width: 420px; white-space: normal; }
+
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 8px 10px; }
+.error { margin-top: 10px; padding: 10px; border-radius: 12px; border: 1px solid rgba(251,113,133,0.35); background: rgba(251,113,133,0.08); }
+
+/* Cotizador: layout en columna (full width) */
+.stack {
+  display: grid;
+  gap: 14px;
+}
+
+/* Ajuste: fila del input referencia para que ocupe todo */
+.row input[style*="flex: 1"] {
+  min-width: 280px;
+}
+
+
+/* Select consistent con el dark theme */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  /* deja espacio para la flecha */
+  padding-right: 36px;
+
+  /* flecha (chevron) */
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(255,255,255,0.65) 50%),
+    linear-gradient(135deg, rgba(255,255,255,0.65) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 12px) 50%;
+  background-size:
+    6px 6px,
+    6px 6px;
+  background-repeat: no-repeat;
+}
+
+/* El desplegable (opciones) en muchos navegadores respeta esto */
+select option {
+  background: #0b1220;
+  color: rgba(255,255,255,0.92);
+}
+
+/* ===== Fix definitivo: SELECT cerrado en dark (evita blanco) ===== */
+select,
+select.input,
+.input select {
+  background-color: rgba(255,255,255,0.05) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 12px !important;
+  padding: 10px 36px 10px 12px !important;
+  outline: none !important;
+
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+
+  /* flecha */
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(255,255,255,0.65) 50%),
+    linear-gradient(135deg, rgba(255,255,255,0.65) 50%, transparent 50%) !important;
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 12px) 50% !important;
+  background-size: 6px 6px, 6px 6px !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Hover/focus igual que inputs */
+select:hover,
+select:focus {
+  border-color: rgba(20,184,166,0.55) !important;
+}
+
+/* Dropdown (opciones) */
+select option {
+  background: #0b1220;
+  color: rgba(255,255,255,0.92);
+}
+
+
+==================== FILE: D:\Front\src\api\clienteApi.ts ====================
 
 import { http } from "../lib/http";
 
@@ -258,7 +516,7 @@ export async function listClientes() {
 }
 
 
-===== D:\Front\src\api\cotizacionApi.ts =====
+==================== FILE: D:\Front\src\api\cotizacionApi.ts ====================
 
 import { http } from "../lib/http";
 
@@ -286,7 +544,7 @@ export async function listCotizaciones() {
 }
 
 
-===== D:\Front\src\api\empleadoApi.ts =====
+==================== FILE: D:\Front\src\api\empleadoApi.ts ====================
 
 import { http } from "../lib/http";
 
@@ -327,7 +585,7 @@ export async function findEmpleadoByLogin(emailOrCedula: string) {
 }
 
 
-===== D:\Front\src\api\productoApi.ts =====
+==================== FILE: D:\Front\src\api\productoApi.ts ====================
 
 import { http } from "../lib/http";
 
@@ -355,7 +613,7 @@ export async function listProductos() {
 }
 
 
-===== D:\Front\src\api\proyectoApi.ts =====
+==================== FILE: D:\Front\src\api\proyectoApi.ts ====================
 
 import { http } from "../lib/http";
 
@@ -370,7 +628,7 @@ export async function listProyectos() {
 }
 
 
-===== D:\Front\src\auth\AuthContext.tsx =====
+==================== FILE: D:\Front\src\auth\AuthContext.tsx ====================
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { AuthState, SessionUser, Role } from "./authTypes";
@@ -382,7 +640,6 @@ type AuthContextValue = AuthState & {
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-
 const LS_KEY = "ingear.session.v1";
 
 function inferRoleFromEmpleado(area?: string | null, cargo?: string | null): Role {
@@ -416,8 +673,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function login(payload: { emailOrCedula: string }) {
-    // Auth temporal: buscamos el empleado en tu API /empleados y lo â€œloggeamosâ€
-    // Cuando tengas JWT, aquÃ­ cambias por /auth/login
     const empleado = await findEmpleadoByLogin(payload.emailOrCedula);
 
     const user: SessionUser = {
@@ -426,7 +681,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email: empleado.email ?? null,
       area: empleado.area ?? null,
       cargo: empleado.cargo ?? null,
-      role: inferRoleFromEmpleado(empleado.area, empleado.cargo)
+      role: inferRoleFromEmpleado(empleado.area, empleado.cargo),
     };
 
     persist({ user, token: "mock-token" });
@@ -437,12 +692,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const value = useMemo<AuthContextValue>(
-    () => ({
-      user: state.user,
-      token: state.token,
-      login,
-      logout
-    }),
+    () => ({ user: state.user, token: state.token, login, logout }),
     [state.user, state.token]
   );
 
@@ -455,29 +705,8 @@ export function useAuth() {
   return ctx;
 }
 
-export type Role =
-  | "ADMINISTRACION"
-  | "LOGISTICA"
-  | "INGENIERIA"
-  | "GERENCIA"
-  | "OTRO";
 
-export type SessionUser = {
-  id: number;
-  nombre: string;
-  email?: string | null;
-  area?: string | null;
-  cargo?: string | null;
-  role: Role;
-};
-
-export type AuthState = {
-  user: SessionUser | null;
-  token: string | null; // placeholder para futuro JWT
-};
-
-
-===== D:\Front\src\auth\authTypes.ts =====
+==================== FILE: D:\Front\src\auth\authTypes.ts ====================
 
 
 
@@ -503,7 +732,7 @@ export type Role =
   | "OTRO";
 
 
-===== D:\Front\src\auth\RequireAuth.tsx =====
+==================== FILE: D:\Front\src\auth\RequireAuth.tsx ====================
 
 import { Navigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
@@ -515,7 +744,7 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
 }
 
 
-===== D:\Front\src\auth\RequireRole.tsx =====
+==================== FILE: D:\Front\src\auth\RequireRole.tsx ====================
 
 import { Navigate } from "react-router-dom";
 import { ENV } from "../config/env";
@@ -541,7 +770,7 @@ export default function RequireRole({
 }
 
 
-===== D:\Front\src\config\env.ts =====
+==================== FILE: D:\Front\src\config\env.ts ====================
 
 export const ENV = {
   API_BASE_URL: import.meta.env.VITE_API_BASE_URL as string,
@@ -549,58 +778,274 @@ export const ENV = {
 };
 
 
-===== D:\Front\src\features\cotizador\cotizadorTypes.ts =====
+==================== FILE: D:\Front\src\features\cotizador\calc.ts ====================
 
+// src/features/cotizador/calc.ts
+import type { Producto } from "../../api/productoApi";
+import type { QuoteLineV2, QuoteTotals } from "./cotizadorTypes";
+import { toNumber } from "../../lib/money";
+
+export function getCostoOrigen(product: Producto): number {
+  // Ajuste: en tu Excel "COSTO ORIGEN" suele ser costo_fabrica.
+  // Si no existe, cae a costo_ingear.
+  const cf = toNumber(product.costo_fabrica);
+  const ci = toNumber(product.costo_ingear);
+  return cf || ci || 0;
+}
+
+export function buildLineFromProduct(args: {
+  product: Producto;
+  itemNo: number;
+  qty?: number;
+  volumenCm3?: number;    // si tu API lo trae despuÃ©s, lo mapearÃ¡s aquÃ­
+  margenFactor?: number;  // default 0.70 como plantilla
+}): QuoteLineV2 {
+  const qty = Math.max(1, args.qty ?? 1);
+  const costoOrigen = getCostoOrigen(args.product);
+  const volumen = Math.max(0, args.volumenCm3 ?? 0);
+  const margenFactor = args.margenFactor ?? 0.7;
+
+  // Inicialmente calculamos lo que NO depende del total de O (peso %)
+  const costoOrigenTotal = costoOrigen * qty;  // O
+  const totalVolumen = volumen * qty;          // N
+
+  // Los demÃ¡s se completan en recalcAllLines()
+  return {
+    id: crypto.randomUUID?.() ?? String(Date.now() + Math.random()),
+    itemNo: args.itemNo,
+    product: args.product,
+    qty,
+    volumenCm3: volumen,
+    margenFactor,
+
+    costoOrigen,            // L
+    totalVolumen,           // N
+    costoOrigenTotal,       // O
+    pesoPct: 0,             // P
+    costoTransporteGrupo: 0,// Q
+    costoTransporteUnit: 0, // R
+    costoCol: 0,            // S
+    vrVenta: 0,             // U
+    vrUnitario: 0,          // I
+    vrTotal: 0              // J
+  };
+}
+
+export function recalcAllLines(lines: QuoteLineV2[], costoTotalDestino: number): QuoteLineV2[] {
+  const sumO = lines.reduce((acc, l) => acc + (l.costoOrigenTotal || 0), 0);
+
+  return lines.map((l) => {
+    const costoOrigenTotal = l.costoOrigen * l.qty;     // O
+    const totalVolumen = l.volumenCm3 * l.qty;          // N
+
+    const pesoPct = sumO > 0 ? costoOrigenTotal / sumO : 0;        // P
+    const costoTransporteGrupo = pesoPct * (costoTotalDestino || 0);// Q
+    const costoTransporteUnit = l.qty > 0 ? costoTransporteGrupo / l.qty : 0; // R
+
+    const costoCol = l.costoOrigen + costoTransporteUnit; // S
+    const margenFactor = l.margenFactor || 0.7;           // T
+
+    // U = S / T (segÃºn tu plantilla)
+    const vrVenta = margenFactor > 0 ? costoCol / margenFactor : 0;
+
+    const vrUnitario = vrVenta;                    // I = U
+    const vrTotal = l.qty * vrUnitario;            // J = H*I
+
+    return {
+      ...l,
+      costoOrigenTotal,
+      totalVolumen,
+      pesoPct,
+      costoTransporteGrupo,
+      costoTransporteUnit,
+      costoCol,
+      vrVenta,
+      vrUnitario,
+      vrTotal
+    };
+  });
+}
+
+export function calcTotals(lines: QuoteLineV2[]): QuoteTotals {
+  const subtotal = lines.reduce((acc, l) => acc + (l.vrTotal || 0), 0);
+  const iva = subtotal * 0.19;
+  const total = subtotal + iva;
+
+  const costoOrigenTotal = lines.reduce((acc, l) => acc + (l.costoOrigenTotal || 0), 0);
+  const totalVolumen = lines.reduce((acc, l) => acc + (l.totalVolumen || 0), 0);
+
+  return { subtotal, iva, total, costoOrigenTotal, totalVolumen };
+}
+
+
+==================== FILE: D:\Front\src\features\cotizador\cotizadorTypes.ts ====================
+
+// src/features/cotizador/cotizadorTypes.ts
 import type { Producto } from "../../api/productoApi";
 
-export type QuoteLine = {
+export type QuoteDraftV2 = {
+  // === Cabecera / datos generales (como en la imagen) ===
+  quoteNumber: string;     // NÃºmero de cotizaciÃ³n
+  title: string;           // TÃ­tulo
+  account: string;         // Cuenta
+  advisor: string;         // Asesor
+  paymentTerms: string;    // Forma de pago
+  stage: string;           // Etapa de cotizaciÃ³n
+  quoteType: string;       // Tipo cotizaciÃ³n
+
+  projectName: string;     // Proyecto
+  contactName: string;     // Contacto
+  validUntil: string;      // VÃ¡lida hasta (YYYY-MM-DD)
+  deliveryTime: string;    // Tiempo de entrega
+  opportunity: string;     // Oportunidad
+  notes: string;           // Notas
+
+  // Si luego quieres â€œInformaciÃ³n de DirecciÃ³nâ€, lo dejamos listo:
+  city?: string;
+
+  // === ParÃ¡metros globales para fÃ³rmulas (Excel) ===
+  costoTotalDestino: number; // equivalente a la celda N51 en tu Excel
+};
+
+export type QuoteLineV2 = {
+  id: string;
+  itemNo: number;
+
   product: Producto;
+
   qty: number;
-  salePrice: number; // precio de venta (visible para roles permitidos)
+
+  // Editables (si tu API no lo trae, lo puedes digitar)
+  volumenCm3: number;   // M
+  margenFactor: number; // T (ej: 0.70)
+
+  // Calculados (Excel)
+  costoOrigen: number;          // L
+  totalVolumen: number;         // N
+  costoOrigenTotal: number;     // O
+  pesoPct: number;              // P
+  costoTransporteGrupo: number; // Q
+  costoTransporteUnit: number;  // R
+  costoCol: number;             // S
+  vrVenta: number;              // U
+  vrUnitario: number;           // I
+  vrTotal: number;              // J
 };
 
-export type QuoteDraft = {
-  customerName: string;
-  projectName: string;
-  city: string;
-  notes: string;
-  lines: QuoteLine[];
+export type QuoteTotals = {
+  subtotal: number;
+  iva: number;
+  total: number;
+
+  // Sensibles (opcionales)
+  costoOrigenTotal: number; // SUM(O)
+  totalVolumen: number;     // SUM(N)
 };
 
 
-===== D:\Front\src\features\cotizador\CotizadorUI.tsx =====
+==================== FILE: D:\Front\src\features\cotizador\CotizadorUI.tsx ====================
 
+// src/features/cotizador/CotizadorUI.tsx
 import { useEffect, useMemo, useState } from "react";
 import { listProductos, type Producto } from "../../api/productoApi";
-import { formatCOP, toNumber } from "../../lib/money";
+import { formatCOP } from "../../lib/money";
 import { useAuth } from "../../auth/AuthContext";
 import { canViewSensitivePricing } from "./rules";
-import type { QuoteDraft, QuoteLine } from "./cotizadorTypes";
 
-function calcSuggestedSale(product: Producto) {
-  // Regla inicial (placeholder): venta = costo_ingear * 1.25
-  // Ajusta con mÃ¡rgenes reales despuÃ©s
-  const base = toNumber(product.costo_ingear);
-  if (!base) return 0;
-  return base * 1.25;
-}
+import type { QuoteDraftV2, QuoteLineV2 } from "./cotizadorTypes";
+import { buildLineFromProduct, recalcAllLines, calcTotals } from "./calc";
+import { generateQuotePdf } from "../../lib/pdf/quotePdf";
+import { getDefaultQuoteTemplateDataUrl } from "../../lib/pdf/template";
+
+type TabKey = "VISION_GLOBAL" | "DIRECCION" | "COTIZADOR";
+
+// âœ… Opciones segÃºn tus imÃ¡genes
+const PAYMENT_TERMS = [
+  "A Convenir",
+  "Anticipado",
+  "Anticipo 30% - Restante con Factura a 30 dÃ­as",
+  "Anticipo 50% - Restante con Factura a 30 dÃ­as",
+  "CrÃ©dito con Factura 30 dÃ­as",
+  "CrÃ©dito con Factura 45 dÃ­as",
+  "Restante 50% previa entrega",
+  "Restante con Factura a 45 dÃ­as",
+  "Restante con Factura a 60 dÃ­as",
+  "Anticipo 50% - Restante Previa Entrega"
+];
+
+const STAGES = [
+  "Borrador",
+  "NegociaciÃ³n",
+  "Enviado",
+  "En Espera",
+  "Confirmado",
+  "Ganada",
+  "Ganada Parcial",
+  "Perdido",
+  "Cerrado Muerto"
+];
+
+const QUOTE_TYPES = ["Normal", "LicitaciÃ³n"];
+
+const DELIVERY_TIMES = [
+  "Inmediata",
+  "2-3 DÃ­as HÃ¡biles",
+  "5-8 DÃ­as HÃ¡biles",
+  "10-15 DÃ­as HÃ¡biles",
+  "1-2 Semanas",
+  "2-3 Semanas",
+  "3-4 Semanas",
+  "5-6 Semanas",
+  "6-8 Semanas",
+  "8-10 Semanas",
+  "120 DÃ­as Calendario",
+  "60 DÃ­as Calendario",
+  "45 DÃ­as Calendario",
+  "30 DÃ­as Calendario",
+  "A Convenir"
+];
 
 export default function CotizadorUI() {
   const { user } = useAuth();
   const allowSensitive = canViewSensitivePricing(user);
 
+  const [tab, setTab] = useState<TabKey>("COTIZADOR");
+
   const [products, setProducts] = useState<Producto[]>([]);
-  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
-  const [draft, setDraft] = useState<QuoteDraft>({
-    customerName: "",
+  const [refInput, setRefInput] = useState("");
+  const [lineError, setLineError] = useState<string | null>(null);
+
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  const [draft, setDraft] = useState<QuoteDraftV2>({
+    quoteNumber: "",
+    title: "",
+    account: "",
+    advisor: user?.nombre ?? "",
+
+    // âœ… defaults (puedes cambiarlos)
+    paymentTerms: "Anticipo 30% - Restante con Factura a 30 dÃ­as",
+    stage: "Borrador",
+    quoteType: "Normal",
+
     projectName: "",
-    city: "",
+    contactName: "",
+    validUntil: "",
+
+    // âœ… ahora serÃ¡ select
+    deliveryTime: "",
+
+    opportunity: "",
     notes: "",
-    lines: []
+
+    city: "",
+    costoTotalDestino: 0
   });
+
+  const [lines, setLines] = useState<QuoteLineV2[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -616,284 +1061,488 @@ export default function CotizadorUI() {
     })();
   }, []);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return products.slice(0, 50);
-    return products
-      .filter((p) => {
-        const a = (p.codigo_producto ?? "").toLowerCase();
-        const b = (p.marca ?? "").toLowerCase();
-        const c = (p.descripcion ?? "").toLowerCase();
-        return a.includes(q) || b.includes(q) || c.includes(q);
-      })
-      .slice(0, 50);
-  }, [products, query]);
+  useEffect(() => {
+    if (!draft.advisor?.trim() && user?.nombre) {
+      setDraft((d) => ({ ...d, advisor: user.nombre }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.nombre]);
 
-  function addLine(product: Producto) {
-    setDraft((d) => {
-      const existing = d.lines.find((l) => l.product.id === product.id);
+  const computedLines = useMemo(() => {
+    return recalcAllLines(lines, draft.costoTotalDestino);
+  }, [lines, draft.costoTotalDestino]);
+
+  const totals = useMemo(() => calcTotals(computedLines), [computedLines]);
+
+  function findByReference(ref: string) {
+    const cleaned = ref.trim();
+    if (!cleaned) return null;
+
+    const exact = products.find((p) => String(p.codigo_producto).trim() === cleaned);
+    if (exact) return exact;
+
+    return (
+      products.find((p) =>
+        String(p.codigo_producto).toLowerCase().includes(cleaned.toLowerCase())
+      ) ?? null
+    );
+  }
+
+  function addLineByReference() {
+    const ref = refInput.trim();
+    if (!ref) return;
+
+    const product = findByReference(ref);
+    if (!product) {
+      setLineError(`No encontrÃ© la referencia "${ref}" en la base de datos.`);
+      return;
+    }
+
+    setLineError(null);
+
+    setLines((prev) => {
+      const existing = prev.find((l) => l.product.id === product.id);
       if (existing) {
-        return {
-          ...d,
-          lines: d.lines.map((l) =>
-            l.product.id === product.id ? { ...l, qty: l.qty + 1 } : l
-          )
-        };
+        return prev.map((l) =>
+          l.product.id === product.id ? { ...l, qty: l.qty + 1 } : l
+        );
       }
-      const suggested = calcSuggestedSale(product);
-      const newLine: QuoteLine = { product, qty: 1, salePrice: suggested };
-      return { ...d, lines: [newLine, ...d.lines] };
+      const itemNo = prev.length + 1;
+      return [...prev, buildLineFromProduct({ product, itemNo, qty: 1 })];
     });
+
+    setRefInput("");
   }
 
-  function updateQty(productId: number, qty: number) {
+  function updateLine(id: string, patch: Partial<QuoteLineV2>) {
+    setLines((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
+  }
+
+  function removeLine(id: string) {
+    setLines((prev) => prev.filter((l) => l.id !== id));
+  }
+
+  function clearAll() {
     setDraft((d) => ({
       ...d,
-      lines: d.lines.map((l) => (l.product.id === productId ? { ...l, qty } : l))
+      quoteNumber: "",
+      title: "",
+      account: "",
+      advisor: user?.nombre ?? "",
+      paymentTerms: "Anticipo 30% - Restante con Factura a 30 dÃ­as",
+      stage: "Borrador",
+      quoteType: "Normal",
+      projectName: "",
+      contactName: "",
+      validUntil: "",
+      deliveryTime: "",
+      opportunity: "",
+      notes: "",
+      city: "",
+      costoTotalDestino: 0
     }));
+    setLines([]);
+    setRefInput("");
+    setLineError(null);
+    setErr(null);
   }
 
-  function updateSalePrice(productId: number, salePrice: number) {
-    setDraft((d) => ({
-      ...d,
-      lines: d.lines.map((l) => (l.product.id === productId ? { ...l, salePrice } : l))
-    }));
+  async function onGeneratePdf() {
+    try {
+      setPdfLoading(true);
+      const templateDataUrl = await getDefaultQuoteTemplateDataUrl();
+      generateQuotePdf({
+        draft,
+        lines: computedLines,
+        totals,
+        templateDataUrl,
+        showSensitive: allowSensitive
+      });
+    } catch (e: any) {
+      setErr(e?.message ?? "No se pudo generar el PDF");
+    } finally {
+      setPdfLoading(false);
+    }
   }
 
-  function removeLine(productId: number) {
-    setDraft((d) => ({ ...d, lines: d.lines.filter((l) => l.product.id !== productId) }));
+  function onSave() {
+    if (!draft.title.trim()) {
+      setErr("El campo TÃ­tulo es obligatorio.");
+      return;
+    }
+    setErr(null);
+    alert("OK: luego conectamos este Guardar a tu API.");
   }
 
-  const totals = useMemo(() => {
-    const subtotal = draft.lines.reduce((acc, l) => acc + l.qty * (l.salePrice || 0), 0);
-    const iva = subtotal * 0.19;
-    const total = subtotal + iva;
+  function onCancel() {
+    clearAll();
+  }
 
-    // margen aproximado (si tenemos costo_ingear y permisos)
-    const cost = draft.lines.reduce((acc, l) => acc + l.qty * toNumber(l.product.costo_ingear), 0);
-    const gross = subtotal - cost;
-    const marginPct = subtotal ? (gross / subtotal) * 100 : 0;
-
-    return { subtotal, iva, total, cost, gross, marginPct };
-  }, [draft.lines]);
+  const showCotizador = tab === "COTIZADOR";
+  const showDireccion = tab === "DIRECCION";
+  const showVision = tab === "VISION_GLOBAL";
 
   return (
-    <div className="grid2">
-      <div className="card">
-        <h3>Datos de la cotizaciÃ³n (borrador)</h3>
-
-        <div className="formGrid">
-          <label>
-            Cliente
-            <input
-              value={draft.customerName}
-              onChange={(e) => setDraft((d) => ({ ...d, customerName: e.target.value }))}
-              placeholder="RazÃ³n social"
-            />
-          </label>
-
-          <label>
-            Proyecto
-            <input
-              value={draft.projectName}
-              onChange={(e) => setDraft((d) => ({ ...d, projectName: e.target.value }))}
-              placeholder="Nombre del proyecto"
-            />
-          </label>
-
-          <label>
-            Ciudad
-            <input
-              value={draft.city}
-              onChange={(e) => setDraft((d) => ({ ...d, city: e.target.value }))}
-              placeholder="MedellÃ­n"
-            />
-          </label>
-
-          <label className="span2">
-            Observaciones
-            <textarea
-              value={draft.notes}
-              onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))}
-              placeholder="Notas internas / condiciones"
-              rows={3}
-            />
-          </label>
+    <div>
+      {/* Header superior */}
+      <div className="rowLine" style={{ justifyContent: "space-between", alignItems: "flex-end" }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: 28 }}>Crear</h1>
         </div>
+        <div className="row" style={{ gap: 10 }}>
+          <button className="btn" onClick={onSave}>GUARDAR</button>
+          <button className="btn" onClick={onCancel}>CANCELAR</button>
+        </div>
+      </div>
 
-        <div className="cardSub">
-          <h4>Resumen</h4>
+      {/* Tabs */}
+      <div className="row" style={{ marginTop: 14, gap: 10, flexWrap: "wrap" }}>
+        <button className="chip" onClick={() => setTab("VISION_GLOBAL")}>VisiÃ³n Global</button>
+        <button className="chip" onClick={() => setTab("DIRECCION")}>InformaciÃ³n de DirecciÃ³n</button>
+        <button className="chip" onClick={() => setTab("COTIZADOR")}>Cotizador</button>
+      </div>
+
+      {loading && <p style={{ marginTop: 12 }}>Cargando productosâ€¦</p>}
+      {err && <div className="error">{err}</div>}
+
+      {showVision && (
+        <div className="module" style={{ marginTop: 14 }}>
+          <h3>VisiÃ³n Global</h3>
           <div className="kv">
-            <div>Subtotal</div>
-            <div>{formatCOP(totals.subtotal)}</div>
-
-            <div>IVA (19%)</div>
-            <div>{formatCOP(totals.iva)}</div>
-
-            <div className="strong">Total</div>
-            <div className="strong">{formatCOP(totals.total)}</div>
-
-            {allowSensitive && (
-              <>
-                <div>Costo (aprox)</div>
-                <div>{formatCOP(totals.cost)}</div>
-
-                <div>Utilidad bruta (aprox)</div>
-                <div>{formatCOP(totals.gross)}</div>
-
-                <div>Margen (%)</div>
-                <div>{totals.marginPct.toFixed(2)}%</div>
-              </>
-            )}
+            <span>Ãtems</span><b>{computedLines.length}</b>
+            <span>Subtotal</span><b>{formatCOP(totals.subtotal)}</b>
+            <span>IVA</span><b>{formatCOP(totals.iva)}</b>
+            <span>Total</span><b>{formatCOP(totals.total)}</b>
           </div>
-          {!allowSensitive && (
-            <div className="hint">
-              * Tu rol no permite ver costos/descuentos/mÃ¡rgenes. (Esto se controla por rol.)
+        </div>
+      )}
+
+      {showDireccion && (
+        <div className="module" style={{ marginTop: 14 }}>
+          <h3>InformaciÃ³n de DirecciÃ³n</h3>
+          <div className="formGrid" style={{ marginTop: 10 }}>
+            <label>
+              Ciudad
+              <input
+                className="input"
+                value={draft.city ?? ""}
+                onChange={(e) => setDraft((d) => ({ ...d, city: e.target.value }))}
+                placeholder="MedellÃ­n"
+              />
+            </label>
+          </div>
+        </div>
+      )}
+
+      {showCotizador && (
+        <>
+          <div className="module" style={{ marginTop: 14 }}>
+            <h3>Datos de la cotizaciÃ³n</h3>
+
+            <div className="formGrid" style={{ marginTop: 10 }}>
+              <label>
+                NÃºmero de CotizaciÃ³n
+                <input
+                  className="input"
+                  value={draft.quoteNumber}
+                  onChange={(e) => setDraft((d) => ({ ...d, quoteNumber: e.target.value }))}
+                  placeholder="Ej: COT-000123"
+                />
+              </label>
+
+              <label>
+                Proyecto
+                <input
+                  className="input"
+                  value={draft.projectName}
+                  onChange={(e) => setDraft((d) => ({ ...d, projectName: e.target.value }))}
+                  placeholder="Nombre del proyecto"
+                />
+              </label>
+
+              <label className="span2">
+                TÃ­tulo <span style={{ color: "#fb7185" }}>*</span>
+                <input
+                  className="input"
+                  value={draft.title}
+                  onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
+                  placeholder="TÃ­tulo de la cotizaciÃ³n"
+                />
+              </label>
+
+              <label>
+                Cuenta
+                <input
+                  className="input"
+                  value={draft.account}
+                  onChange={(e) => setDraft((d) => ({ ...d, account: e.target.value }))}
+                  placeholder="Cliente / Cuenta"
+                />
+              </label>
+
+              <label>
+                Contacto
+                <input
+                  className="input"
+                  value={draft.contactName}
+                  onChange={(e) => setDraft((d) => ({ ...d, contactName: e.target.value }))}
+                  placeholder="Nombre del contacto"
+                />
+              </label>
+
+              <label>
+                Asesor
+                <input
+                  className="input"
+                  value={draft.advisor}
+                  onChange={(e) => setDraft((d) => ({ ...d, advisor: e.target.value }))}
+                  placeholder="Asesor responsable"
+                />
+              </label>
+
+              <label>
+                VÃ¡lida Hasta <span style={{ color: "#fb7185" }}>*</span>
+                <input
+                  className="input"
+                  type="date"
+                  value={draft.validUntil}
+                  onChange={(e) => setDraft((d) => ({ ...d, validUntil: e.target.value }))}
+                />
+              </label>
+
+              {/* âœ… Forma de Pago: menÃº segÃºn imagen */}
+              <label>
+                Forma de Pago
+                <select
+                  className="input"
+                  value={draft.paymentTerms}
+                  onChange={(e) => setDraft((d) => ({ ...d, paymentTerms: e.target.value }))}
+                >
+                  {PAYMENT_TERMS.map((x) => (
+                    <option key={x} value={x}>{x}</option>
+                  ))}
+                </select>
+              </label>
+
+              {/* âœ… Tiempo de Entrega: menÃº segÃºn imagen */}
+              <label>
+                Tiempo de Entrega <span style={{ color: "#fb7185" }}>*</span>
+                <select
+                  className="input"
+                  value={draft.deliveryTime}
+                  onChange={(e) => setDraft((d) => ({ ...d, deliveryTime: e.target.value }))}
+                >
+                  <option value="">(Selecciona)</option>
+                  {DELIVERY_TIMES.map((x) => (
+                    <option key={x} value={x}>{x}</option>
+                  ))}
+                </select>
+              </label>
+
+              {/* âœ… Etapa: menÃº segÃºn imagen */}
+              <label>
+                Etapa de CotizaciÃ³n <span style={{ color: "#fb7185" }}>*</span>
+                <select
+                  className="input"
+                  value={draft.stage}
+                  onChange={(e) => setDraft((d) => ({ ...d, stage: e.target.value }))}
+                >
+                  {STAGES.map((x) => (
+                    <option key={x} value={x}>{x}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                Oportunidad
+                <input
+                  className="input"
+                  value={draft.opportunity}
+                  onChange={(e) => setDraft((d) => ({ ...d, opportunity: e.target.value }))}
+                  placeholder="Ej: OPP-00045"
+                />
+              </label>
+
+              {/* âœ… Tipo CotizaciÃ³n: menÃº segÃºn imagen */}
+              <label>
+                Tipo CotizaciÃ³n <span style={{ color: "#fb7185" }}>*</span>
+                <select
+                  className="input"
+                  value={draft.quoteType}
+                  onChange={(e) => setDraft((d) => ({ ...d, quoteType: e.target.value }))}
+                >
+                  {QUOTE_TYPES.map((x) => (
+                    <option key={x} value={x}>{x}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="span2">
+                Notas
+                <textarea
+                  className="input"
+                  style={{ minHeight: 120, resize: "vertical" }}
+                  value={draft.notes}
+                  onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))}
+                  placeholder="Notas / condiciones / observaciones"
+                />
+              </label>
+
+              {allowSensitive && (
+                <label>
+                  Costo total destino (para transporte)
+                  <input
+                    className="input"
+                    type="number"
+                    value={draft.costoTotalDestino}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, costoTotalDestino: Number(e.target.value || 0) }))
+                    }
+                    placeholder="0"
+                  />
+                </label>
+              )}
             </div>
-          )}
-        </div>
+          </div>
 
-        <div className="hint">
-          Esta pantalla es UI base del cotizador. La creaciÃ³n de cotizaciones en BD la activamos cuando tu
-          API tenga `id_proyecto` en el schema de CotizaciÃ³n. :contentReference[oaicite:2]{index=2}
-        </div>
-      </div>
+          {/* Agregar Ã­tem por referencia */}
+          <div className="module" style={{ marginTop: 14 }}>
+            <div className="rowLine">
+              <div>
+                <h3>Agregar Ã­tem por Referencia</h3>
+                <p>Escribe la referencia y presiona agregar.</p>
+              </div>
 
-      <div className="card">
-        <h3>CatÃ¡logo de productos</h3>
+              <div className="row" style={{ gap: 10 }}>
+                <input
+                  className="input"
+                  value={refInput}
+                  onChange={(e) => setRefInput(e.target.value)}
+                  placeholder="Referencia (cÃ³digo producto)"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") addLineByReference();
+                  }}
+                  style={{ minWidth: 320 }}
+                />
+                <button className="btn" onClick={addLineByReference}>+ Agregar</button>
+              </div>
+            </div>
 
-        <div className="row">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar por cÃ³digo, marca o descripciÃ³n..."
-          />
-          <div className="pill">{products.length} productos</div>
-        </div>
+            {lineError && <div className="error">{lineError}</div>}
 
-        {loading && <p className="muted">Cargando...</p>}
-        {err && <div className="error">{err}</div>}
+            <div className="tableWrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Ãtem</th>
+                    <th>Marca</th>
+                    <th>Referencia</th>
+                    <th>DescripciÃ³n</th>
+                    <th>Qty</th>
+                    <th>Vr Unitario</th>
+                    <th>Vr Total</th>
 
-        <div className="tableWrap">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>CÃ³digo</th>
-                <th>Marca</th>
-                <th>DescripciÃ³n</th>
-                <th>Inventario</th>
-                {allowSensitive && <th>Costo Ingear</th>}
-                <th>Agregar</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.codigo_producto}</td>
-                  <td>{p.marca ?? "-"}</td>
-                  <td className="tdWrap">{p.descripcion ?? "-"}</td>
-                  <td>{p.cantidad_inventario ?? 0}</td>
-                  {allowSensitive && <td>{formatCOP(toNumber(p.costo_ingear))}</td>}
-                  <td>
-                    <button className="btn" onClick={() => addLine(p)}>
-                      + AÃ±adir
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {!loading && filtered.length === 0 && (
-                <tr>
-                  <td colSpan={allowSensitive ? 6 : 5} className="muted">
-                    Sin resultados.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                    {allowSensitive && <th>Costo Origen</th>}
+                    {allowSensitive && <th>Costo Col</th>}
+                    {allowSensitive && <th>Margen (T)</th>}
 
-        <h3 style={{ marginTop: 18 }}>Items de cotizaciÃ³n</h3>
-        <div className="tableWrap">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th>Cant.</th>
-                <th>Precio venta</th>
-                {allowSensitive && <th>Costo</th>}
-                {allowSensitive && <th>Utilidad</th>}
-                <th>Subtotal</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {draft.lines.map((l) => {
-                const sub = l.qty * (l.salePrice || 0);
-                const cost = l.qty * toNumber(l.product.costo_ingear);
-                const profit = sub - cost;
-
-                return (
-                  <tr key={l.product.id}>
-                    <td>
-                      <div className="strong">{l.product.codigo_producto}</div>
-                      <div className="muted">{l.product.descripcion ?? ""}</div>
-                    </td>
-                    <td style={{ width: 90 }}>
-                      <input
-                        type="number"
-                        min={1}
-                        value={l.qty}
-                        onChange={(e) => updateQty(l.product.id, Math.max(1, Number(e.target.value)))}
-                      />
-                    </td>
-                    <td style={{ width: 160 }}>
-                      <input
-                        type="number"
-                        min={0}
-                        value={l.salePrice}
-                        onChange={(e) => updateSalePrice(l.product.id, Number(e.target.value))}
-                      />
-                    </td>
-
-                    {allowSensitive && <td>{formatCOP(cost)}</td>}
-                    {allowSensitive && <td>{formatCOP(profit)}</td>}
-
-                    <td>{formatCOP(sub)}</td>
-                    <td style={{ width: 90 }}>
-                      <button className="btnDanger" onClick={() => removeLine(l.product.id)}>
-                        Quitar
-                      </button>
-                    </td>
+                    <th></th>
                   </tr>
-                );
-              })}
+                </thead>
 
-              {draft.lines.length === 0 && (
-                <tr>
-                  <td colSpan={allowSensitive ? 7 : 5} className="muted">
-                    Agrega productos desde el catÃ¡logo.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                <tbody>
+                  {computedLines.length === 0 ? (
+                    <tr>
+                      <td colSpan={allowSensitive ? 11 : 8} style={{ color: "var(--muted)" }}>
+                        Agrega Ã­tems escribiendo la referencia.
+                      </td>
+                    </tr>
+                  ) : (
+                    computedLines.map((l) => (
+                      <tr key={l.id}>
+                        <td>{l.itemNo}</td>
+                        <td>{l.product.marca}</td>
+                        <td>{l.product.codigo_producto}</td>
+                        <td className="tdWrap">{l.product.descripcion}</td>
 
-        <div className="row" style={{ justifyContent: "flex-end", marginTop: 12 }}>
-          <button className="btn" onClick={() => setDraft((d) => ({ ...d, lines: [] }))}>
-            Limpiar
-          </button>
-          <button className="btnPrimary" disabled>
-            Guardar cotizaciÃ³n (pendiente API)
-          </button>
-        </div>
-      </div>
+                        <td>
+                          <input
+                            className="input"
+                            type="number"
+                            value={l.qty}
+                            min={1}
+                            onChange={(e) => updateLine(l.id, { qty: Number(e.target.value || 1) })}
+                            style={{ width: 80 }}
+                          />
+                        </td>
+
+                        <td>{formatCOP(l.vrUnitario)}</td>
+                        <td>{formatCOP(l.vrTotal)}</td>
+
+                        {allowSensitive && <td>{formatCOP(l.costoOrigen)}</td>}
+                        {allowSensitive && <td>{formatCOP(l.costoCol)}</td>}
+                        {allowSensitive && (
+                          <td>
+                            <input
+                              className="input"
+                              type="number"
+                              step="0.01"
+                              value={l.margenFactor}
+                              onChange={(e) =>
+                                updateLine(l.id, { margenFactor: Number(e.target.value || 0) })
+                              }
+                              style={{ width: 90 }}
+                            />
+                          </td>
+                        )}
+
+                        <td>
+                          <button className="btn" onClick={() => removeLine(l.id)}>
+                            Quitar
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <p style={{ marginTop: 8, color: "var(--muted)", fontSize: 12 }}>
+              * Columnas comunes visibles para todos. Columnas sensibles solo aparecen si tu rol permite ver costos/mÃ¡rgenes.
+            </p>
+          </div>
+
+          {/* Resumen */}
+          <div className="module" style={{ marginTop: 14 }}>
+            <div className="rowLine">
+              <div>
+                <h3>Resumen</h3>
+                <p>Totales calculados.</p>
+              </div>
+
+              <div className="row" style={{ gap: 10 }}>
+                <button className="btn" onClick={clearAll}>Limpiar</button>
+                <button className="btn" onClick={onGeneratePdf} disabled={pdfLoading}>
+                  {pdfLoading ? "Generando..." : "Generar PDF"}
+                </button>
+              </div>
+            </div>
+
+            <div className="kv">
+              <span>Subtotal</span><b>{formatCOP(totals.subtotal)}</b>
+              <span>IVA (19%)</span><b>{formatCOP(totals.iva)}</b>
+              <span>Total</span><b>{formatCOP(totals.total)}</b>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
 
-===== D:\Front\src\features\cotizador\rules.ts =====
+==================== FILE: D:\Front\src\features\cotizador\rules.ts ====================
 
 import type { SessionUser } from "../../auth/authTypes";
 
@@ -911,7 +1560,10 @@ export type ModuleKey =
 export function canAccessModule(user: SessionUser | null, module: ModuleKey) {
   if (!user) return false;
 
-  // Gerencia ve todo
+  // Si el mÃ³dulo es Gerencia, SOLO Gerencia entra
+  if (module === "GERENCIA") return user.role === "GERENCIA";
+
+  // Gerencia ve todo (para los demÃ¡s mÃ³dulos)
   if (user.role === "GERENCIA") return true;
 
   // Accesos por rol
@@ -919,10 +1571,10 @@ export function canAccessModule(user: SessionUser | null, module: ModuleKey) {
   if (module === "ADMINISTRACION") return user.role === "ADMINISTRACION";
   if (module === "LOGISTICA") return user.role === "LOGISTICA";
   if (module === "INGENIERIA") return user.role === "INGENIERIA";
-  if (module === "GERENCIA") return user.role === "GERENCIA";
 
   return false;
 }
+
 
 /**
  * Controla si puede ver datos sensibles: costos, descuentos, mÃ¡rgenes, etc.
@@ -933,7 +1585,7 @@ export function canViewSensitivePricing(user: SessionUser | null) {
 }
 
 
-===== D:\Front\src\layout\AppLayout.tsx =====
+==================== FILE: D:\Front\src\layout\AppLayout.tsx ====================
 
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
@@ -954,7 +1606,7 @@ export default function AppLayout() {
 }
 
 
-===== D:\Front\src\layout\Sidebar.tsx =====
+==================== FILE: D:\Front\src\layout\Sidebar.tsx ====================
 
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
@@ -1003,7 +1655,7 @@ export default function Sidebar() {
 }
 
 
-===== D:\Front\src\layout\Topbar.tsx =====
+==================== FILE: D:\Front\src\layout\Topbar.tsx ====================
 
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
@@ -1011,19 +1663,26 @@ import { useAuth } from "../auth/AuthContext";
 export default function Topbar() {
   const { user, logout } = useAuth();
 
+  const role = user?.role ?? "SIN_ROL";
+  const name = user?.nombre ?? "Invitado";
+
   return (
     <header className="topbar">
-      <div className="topbarLeft">
-        <div className="topbarTitle">Cotizador</div>
+      <div className="chips">
+        <div className="chip">PWA</div>
+        <div className="chip">Conectado a API</div>
+        <div className="chip">Workspace</div>
       </div>
 
-      <div className="topbarRight">
-        <div className="user">
-          <div className="userName">{user?.nombre ?? "Invitado"}</div>
-          <div className="userRole">{user?.role ?? "SIN_ROL"}</div>
+      <div className="user">
+        <div className="uinfo">
+          <b>{name}</b>
+          <span>ROL: {role}</span>
         </div>
 
-        {/* Dejamos login disponible, pero no es obligatorio */}
+        <div className="avatar" />
+
+        {/* Login sigue disponible (modo local), por si lo necesitas */}
         <Link className="btn" to="/login" style={{ textDecoration: "none" }}>
           Ir a Login
         </Link>
@@ -1037,7 +1696,7 @@ export default function Topbar() {
 }
 
 
-===== D:\Front\src\lib\http.ts =====
+==================== FILE: D:\Front\src\lib\http.ts ====================
 
 import { ENV } from "../config/env";
 
@@ -1097,7 +1756,7 @@ function safeJson(text: string) {
 }
 
 
-===== D:\Front\src\lib\money.ts =====
+==================== FILE: D:\Front\src\lib\money.ts ====================
 
 export function formatCOP(value: number) {
   return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP" }).format(value);
@@ -1109,7 +1768,201 @@ export function toNumber(val: unknown) {
 }
 
 
-===== D:\Front\src\pages\AdministracionPage.tsx =====
+==================== FILE: D:\Front\src\lib\pdf\quotePdf.ts ====================
+
+// src/lib/pdf/quotePdf.ts
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import type {
+  QuoteDraftV2,
+  QuoteLineV2,
+  QuoteTotals
+} from "../../features/cotizador/cotizadorTypes";
+import { formatCOP } from "../money";
+
+type GeneratePdfArgs = {
+  draft: QuoteDraftV2;
+  lines: QuoteLineV2[];
+  totals: QuoteTotals;
+  templateDataUrl?: string | null; // plantilla fija en DataURL
+  showSensitive: boolean;
+};
+
+function safeText(v: unknown) {
+  return v == null ? "" : String(v);
+}
+
+export function generateQuotePdf({
+  draft,
+  lines,
+  totals,
+  templateDataUrl,
+  showSensitive
+}: GeneratePdfArgs) {
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+
+  const drawTemplate = () => {
+    if (!templateDataUrl) return;
+
+    const isPng = templateDataUrl.startsWith("data:image/png");
+    const isJpeg =
+      templateDataUrl.startsWith("data:image/jpeg") ||
+      templateDataUrl.startsWith("data:image/jpg");
+
+    try {
+      if (isPng) doc.addImage(templateDataUrl, "PNG", 0, 0, pageW, pageH);
+      else if (isJpeg) doc.addImage(templateDataUrl, "JPEG", 0, 0, pageW, pageH);
+      else doc.addImage(templateDataUrl, "JPEG", 0, 0, pageW, pageH);
+    } catch {
+      // si falla, no pinta fondo
+    }
+  };
+
+  drawTemplate();
+
+  // Zona de texto (arriba) - la dejamos simple y â€œencima del templateâ€
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+
+  const leftX = 44;
+  let y = 95;
+  const gap = 14;
+
+  const line = (label: string, value: string) => {
+    doc.text(`${label}: ${value}`, leftX, y);
+    y += gap;
+  };
+
+  // Campos como en tu pantalla
+  line("NÃºmero", safeText(draft.quoteNumber));
+  line("TÃ­tulo", safeText(draft.title));
+  line("Cuenta", safeText(draft.account));
+  line("Asesor", safeText(draft.advisor));
+  line("Proyecto", safeText(draft.projectName));
+  line("Contacto", safeText(draft.contactName));
+  line("VÃ¡lida hasta", safeText(draft.validUntil));
+  line("Forma de pago", safeText(draft.paymentTerms));
+  line("Etapa", safeText(draft.stage));
+  line("Tipo", safeText(draft.quoteType));
+  line("Tiempo entrega", safeText(draft.deliveryTime));
+  line("Oportunidad", safeText(draft.opportunity));
+
+  if (draft.notes?.trim()) {
+    y += 6;
+    doc.text(`Notas: ${safeText(draft.notes)}`, leftX, y);
+    y += gap;
+  }
+
+  // Tabla
+  const columnsCommon = [
+    { header: "Ãtem", dataKey: "item" },
+    { header: "Marca", dataKey: "marca" },
+    { header: "Referencia", dataKey: "ref" },
+    { header: "DescripciÃ³n", dataKey: "desc" },
+    { header: "Qty", dataKey: "qty" },
+    { header: "Vr Unitario", dataKey: "unit" },
+    { header: "Vr Total", dataKey: "total" }
+  ];
+
+  const columnsSensitive = [
+    { header: "Costo Origen", dataKey: "costo_origen" },
+    { header: "Costo Col", dataKey: "costo_col" },
+    { header: "Margen (T)", dataKey: "margen" }
+  ];
+
+  const columns = showSensitive
+    ? [...columnsCommon, ...columnsSensitive]
+    : columnsCommon;
+
+  const rows = lines.map((l) => {
+    const base: any = {
+      item: l.itemNo,
+      marca: safeText(l.product.marca),
+      ref: safeText(l.product.codigo_producto),
+      desc: safeText(l.product.descripcion),
+      qty: l.qty,
+      unit: formatCOP(l.vrUnitario),
+      total: formatCOP(l.vrTotal)
+    };
+
+    if (showSensitive) {
+      base.costo_origen = formatCOP(l.costoOrigen);
+      base.costo_col = formatCOP(l.costoCol);
+      base.margen = (l.margenFactor ?? 0).toFixed(2);
+    }
+
+    return base;
+  });
+
+  autoTable(doc, {
+    startY: Math.max(y + 20, 200),
+    columns,
+    body: rows,
+    styles: { fontSize: 9, cellPadding: 4 },
+    headStyles: { fillColor: [240, 244, 248], textColor: [20, 24, 28] },
+    theme: "grid"
+  });
+
+  // Totales (abajo)
+  const finalY = (doc as any).lastAutoTable?.finalY ?? 600;
+  const boxY = Math.min(finalY + 18, pageH - 170);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+
+  doc.text(`Subtotal: ${formatCOP(totals.subtotal)}`, leftX, boxY);
+  doc.text(`IVA (19%): ${formatCOP(totals.iva)}`, leftX, boxY + 16);
+  doc.text(`Total: ${formatCOP(totals.total)}`, leftX, boxY + 32);
+
+  doc.save(`Cotizacion_${draft.quoteNumber || "SIN_NUMERO"}.pdf`);
+}
+
+
+==================== FILE: D:\Front\src\lib\pdf\template.ts ====================
+
+// src/lib/pdf/template.ts
+
+let cachedDataUrl: string | null = null;
+
+/**
+ * Carga la plantilla fija del PDF desde /public/templates/cotizacion.jpg (o .png)
+ * y la devuelve como DataURL para poder usarla en jsPDF.addImage().
+ */
+export async function getDefaultQuoteTemplateDataUrl(): Promise<string | null> {
+  if (cachedDataUrl) return cachedDataUrl;
+
+  // Puedes cambiar la extensiÃ³n si tu plantilla es .png
+  const candidates = ["/templates/cotizacion.jpg", "/templates/cotizacion.png"];
+
+  for (const path of candidates) {
+    try {
+      const res = await fetch(path, { cache: "no-store" });
+      if (!res.ok) continue;
+
+      const blob = await res.blob();
+      cachedDataUrl = await blobToDataURL(blob);
+      return cachedDataUrl;
+    } catch {
+      // intenta siguiente candidato
+    }
+  }
+
+  return null;
+}
+
+function blobToDataURL(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("No se pudo leer la plantilla del PDF"));
+    reader.onload = () => resolve(String(reader.result));
+    reader.readAsDataURL(blob);
+  });
+}
+
+
+==================== FILE: D:\Front\src\pages\AdministracionPage.tsx ====================
 
 export default function AdministracionPage() {
     return (
@@ -1123,8 +1976,7 @@ export default function AdministracionPage() {
   }
   
 
-
-===== D:\Front\src\pages\CotizadorPage.tsx =====
+==================== FILE: D:\Front\src\pages\CotizadorPage.tsx ====================
 
 import CotizadorUI from "../features/cotizador/CotizadorUI";
 
@@ -1141,7 +1993,7 @@ export default function CotizadorPage() {
 }
 
 
-===== D:\Front\src\pages\GerenciaPage.tsx =====
+==================== FILE: D:\Front\src\pages\GerenciaPage.tsx ====================
 
 export default function GerenciaPage() {
   return (
@@ -1153,27 +2005,185 @@ export default function GerenciaPage() {
 }
 
 
-===== D:\Front\src\pages\HomePage.tsx =====
+==================== FILE: D:\Front\src\pages\HomePage.tsx ====================
 
+import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+
+type QuickModule = {
+  to: string;
+  area: string;
+  title: string;
+  desc: string;
+  action: string;
+};
 
 export default function HomePage() {
   const { user } = useAuth();
+  const role = user?.role ?? "SIN_ROL";
+
+  const modules: QuickModule[] = [
+    {
+      to: "/cotizador",
+      area: "COMERCIAL",
+      title: "Cotizador",
+      desc: "Crear, revisar y enviar cotizaciones. Control de versiÃ³n y vigencia.",
+      action: "Acceder"
+    },
+    {
+      to: "/administracion",
+      area: "ADMIN",
+      title: "AdministraciÃ³n",
+      desc: "ParÃ¡metros, clientes, empleados, productos y gestiÃ³n interna.",
+      action: "Acceder"
+    },
+    {
+      to: "/logistica",
+      area: "LOGÃSTICA",
+      title: "LogÃ­stica",
+      desc: "Despachos, guÃ­as, estados, transportadora y trazabilidad.",
+      action: "Acceder"
+    },
+    {
+      to: "/ingenieria",
+      area: "INGENIERÃA",
+      title: "IngenierÃ­a",
+      desc: "RevisiÃ³n tÃ©cnica, listas de materiales, especificaciones y planos.",
+      action: "Acceder"
+    }
+  ];
+
   return (
-    <div className="card">
-      <h2>Bienvenido</h2>
-      <p className="muted">
-        Hola <b>{user?.nombre}</b>. Tu rol es <b>{user?.role}</b>.
-      </p>
-      <p>
-        Este frontend estÃ¡ listo para crecer por mÃ³dulos: Administracion, LogÃ­stica, IngenierÃ­a y Gerencia.
-      </p>
-    </div>
+    <>
+      {/* Card principal con KPIs */}
+      <div className="card">
+        <h2>Panel general</h2>
+        <p className="muted">
+          Indicadores rÃ¡pidos + accesos por mÃ³dulos (Home estilo dashboard).
+        </p>
+
+        <div className="kpis">
+          <div className="kpi">
+            <div className="tag">
+              <span>Cotizaciones hoy</span>
+              <span className="pill">+12%</span>
+            </div>
+            <div className="val">18</div>
+            <div className="spark" />
+          </div>
+
+          <div className="kpi">
+            <div className="tag">
+              <span>Pendientes aprobaciÃ³n</span>
+              <span className="pill">3</span>
+            </div>
+            <div className="val">7</div>
+            <div
+              className="spark"
+              style={{
+                borderColor: "rgba(251,191,36,0.22)",
+                background:
+                  "linear-gradient(90deg, rgba(251,191,36,0), rgba(251,191,36,0.22), rgba(251,191,36,0.05))"
+              }}
+            />
+          </div>
+
+          <div className="kpi">
+            <div className="tag">
+              <span>En despacho</span>
+              <span className="pill">2</span>
+            </div>
+            <div className="val">5</div>
+            <div
+              className="spark"
+              style={{
+                borderColor: "rgba(96,165,250,0.22)",
+                background:
+                  "linear-gradient(90deg, rgba(96,165,250,0), rgba(96,165,250,0.22), rgba(96,165,250,0.05))"
+              }}
+            />
+          </div>
+
+          <div className="kpi">
+            <div className="tag">
+              <span>Vencen pronto</span>
+              <span className="pill">âš </span>
+            </div>
+            <div className="val">4</div>
+            <div
+              className="spark"
+              style={{
+                borderColor: "rgba(251,113,133,0.22)",
+                background:
+                  "linear-gradient(90deg, rgba(251,113,133,0), rgba(251,113,133,0.22), rgba(251,113,133,0.05))"
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Grid: mÃ³dulos (izquierda) + actividad (derecha) */}
+      <div className="grid" style={{ marginTop: 14 }}>
+        <div className="card">
+          <h2>MÃ³dulos</h2>
+          <p className="muted">Entradas rÃ¡pidas segÃºn permisos (por ahora: modo libre).</p>
+
+          <div className="modules">
+            {modules.map((m) => (
+              <Link key={m.to} className="module" to={m.to}>
+                <div className="rowLine">
+                  <span className="badge">{m.area}</span>
+                  <span className="pill">{m.action}</span>
+                </div>
+                <h3>{m.title}</h3>
+                <p>{m.desc}</p>
+              </Link>
+            ))}
+          </div>
+
+          <div className="hint" style={{ marginTop: 12 }}>
+            SesiÃ³n actual: <span className="strong">{user?.nombre ?? "Invitado"}</span> â€”{" "}
+            <span className="muted">ROL: {role}</span>
+          </div>
+        </div>
+
+        <div className="card">
+          <h2>Actividad</h2>
+          <p className="muted">Ãšltimos movimientos (mockup).</p>
+
+          <div className="list">
+            <div className="item">
+              <div>
+                <b>COT-2026-00128</b>
+                <span>Enviada al cliente â€¢ hace 12 min</span>
+              </div>
+              <span className="pill">OK</span>
+            </div>
+
+            <div className="item">
+              <div>
+                <b>Proyecto â€œCentro Comercialâ€</b>
+                <span>Nuevo Ã­tem agregado â€¢ hace 1 h</span>
+              </div>
+              <span className="pill">+</span>
+            </div>
+
+            <div className="item">
+              <div>
+                <b>Despacho #4481</b>
+                <span>ActualizaciÃ³n de estado â€¢ hoy</span>
+              </div>
+              <span className="pill">â±</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 
 
-===== D:\Front\src\pages\IngenieriaPage.tsx =====
+==================== FILE: D:\Front\src\pages\IngenieriaPage.tsx ====================
 
 export default function IngenieriaPage() {
   return (
@@ -1185,7 +2195,7 @@ export default function IngenieriaPage() {
 }
 
 
-===== D:\Front\src\pages\LoginPage.tsx =====
+==================== FILE: D:\Front\src\pages\LoginPage.tsx ====================
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -1241,7 +2251,7 @@ export default function LoginPage() {
 }
 
 
-===== D:\Front\src\pages\LogisticaPage.tsx =====
+==================== FILE: D:\Front\src\pages\LogisticaPage.tsx ====================
 
 export default function LogisticaPage() {
   return (
@@ -1253,7 +2263,7 @@ export default function LogisticaPage() {
 }
 
 
-===== D:\Front\src\pages\NotFoundPage.tsx =====
+==================== FILE: D:\Front\src\pages\NotFoundPage.tsx ====================
 
 export default function NotFoundPage() {
   return (
@@ -1265,32 +2275,7 @@ export default function NotFoundPage() {
 }
 
 
-===== .\.gitignore =====
-
-node_modules/
-dist/
-.env
-*.log
-
-
-===== .\firebase.json =====
-
-{
-  "hosting": {
-    "public": "dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "headers": [
-      {
-        "source": "/manifest.webmanifest",
-        "headers": [{ "key": "Content-Type", "value": "application/manifest+json" }]
-      }
-    ],
-    "rewrites": [{ "source": "**", "destination": "/index.html" }]
-  }
-}
-
-
-===== .\index.html =====
+==================== FILE: D:\Front\index.html ====================
 
 <!doctype html>
 <html lang="es">
@@ -1306,7 +2291,7 @@ dist/
 </html>
 
 
-===== .\package.json =====
+==================== FILE: D:\Front\package.json ====================
 
 {
   "name": "ingear-frontend",
@@ -1322,6 +2307,8 @@ dist/
     "deploy": "vite build && firebase deploy"
   },
   "dependencies": {
+    "jspdf": "^4.1.0",
+    "jspdf-autotable": "^5.0.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2"
@@ -1337,7 +2324,7 @@ dist/
 }
 
 
-===== .\tsconfig.json =====
+==================== FILE: D:\Front\tsconfig.json ====================
 
 {
   "compilerOptions": {
@@ -1355,7 +2342,7 @@ dist/
 }
 
 
-===== .\vite.config.ts =====
+==================== FILE: D:\Front\vite.config.ts ====================
 
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
@@ -1383,27 +2370,4 @@ export default defineConfig({
     })
   ]
 });
-
-
-===== .\.gitignore =====
-
-
-
-===== .\firebase.json =====
-
-
-
-===== .\index.html =====
-
-
-
-===== .\package.json =====
-
-
-
-===== .\tsconfig.json =====
-
-
-
-===== .\vite.config.ts =====
 

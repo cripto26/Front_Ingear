@@ -1,34 +1,104 @@
+// src/features/cotizador/CotizadorUI.tsx
 import { useEffect, useMemo, useState } from "react";
 import { listProductos, type Producto } from "../../api/productoApi";
-import { formatCOP, toNumber } from "../../lib/money";
+import { formatCOP } from "../../lib/money";
 import { useAuth } from "../../auth/AuthContext";
 import { canViewSensitivePricing } from "./rules";
-import type { QuoteDraft, QuoteLine } from "./cotizadorTypes";
 
-function calcSuggestedSale(product: Producto) {
-  // Regla inicial (placeholder): venta = costo_ingear * 1.25
-  // Ajusta con márgenes reales después
-  const base = toNumber(product.costo_ingear);
-  if (!base) return 0;
-  return base * 1.25;
-}
+import type { QuoteDraftV2, QuoteLineV2 } from "./cotizadorTypes";
+import { buildLineFromProduct, recalcAllLines, calcTotals } from "./calc";
+import { generateQuotePdf } from "../../lib/pdf/quotePdf";
+import { getDefaultQuoteTemplateDataUrl } from "../../lib/pdf/template";
+
+type TabKey = "VISION_GLOBAL" | "DIRECCION" | "COTIZADOR";
+
+// ✅ Opciones según tus imágenes
+const PAYMENT_TERMS = [
+  "A Convenir",
+  "Anticipado",
+  "Anticipo 30% - Restante con Factura a 30 días",
+  "Anticipo 50% - Restante con Factura a 30 días",
+  "Crédito con Factura 30 días",
+  "Crédito con Factura 45 días",
+  "Restante 50% previa entrega",
+  "Restante con Factura a 45 días",
+  "Restante con Factura a 60 días",
+  "Anticipo 50% - Restante Previa Entrega"
+];
+
+const STAGES = [
+  "Borrador",
+  "Negociación",
+  "Enviado",
+  "En Espera",
+  "Confirmado",
+  "Ganada",
+  "Ganada Parcial",
+  "Perdido",
+  "Cerrado Muerto"
+];
+
+const QUOTE_TYPES = ["Normal", "Licitación"];
+
+const DELIVERY_TIMES = [
+  "Inmediata",
+  "2-3 Días Hábiles",
+  "5-8 Días Hábiles",
+  "10-15 Días Hábiles",
+  "1-2 Semanas",
+  "2-3 Semanas",
+  "3-4 Semanas",
+  "5-6 Semanas",
+  "6-8 Semanas",
+  "8-10 Semanas",
+  "120 Días Calendario",
+  "60 Días Calendario",
+  "45 Días Calendario",
+  "30 Días Calendario",
+  "A Convenir"
+];
 
 export default function CotizadorUI() {
   const { user } = useAuth();
   const allowSensitive = canViewSensitivePricing(user);
 
+  const [tab, setTab] = useState<TabKey>("COTIZADOR");
+
   const [products, setProducts] = useState<Producto[]>([]);
-  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
-  const [draft, setDraft] = useState<QuoteDraft>({
-    customerName: "",
+  const [refInput, setRefInput] = useState("");
+  const [lineError, setLineError] = useState<string | null>(null);
+
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  const [draft, setDraft] = useState<QuoteDraftV2>({
+    quoteNumber: "",
+    title: "",
+    account: "",
+    advisor: user?.nombre ?? "",
+
+    // ✅ defaults (puedes cambiarlos)
+    paymentTerms: "Anticipo 30% - Restante con Factura a 30 días",
+    stage: "Borrador",
+    quoteType: "Normal",
+
     projectName: "",
-    city: "",
+    contactName: "",
+    validUntil: "",
+
+    // ✅ ahora será select
+    deliveryTime: "",
+
+    opportunity: "",
     notes: "",
-    lines: []
+
+    city: "",
+    costoTotalDestino: 0
   });
+
+  const [lines, setLines] = useState<QuoteLineV2[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -44,278 +114,482 @@ export default function CotizadorUI() {
     })();
   }, []);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return products.slice(0, 50);
-    return products
-      .filter((p) => {
-        const a = (p.codigo_producto ?? "").toLowerCase();
-        const b = (p.marca ?? "").toLowerCase();
-        const c = (p.descripcion ?? "").toLowerCase();
-        return a.includes(q) || b.includes(q) || c.includes(q);
-      })
-      .slice(0, 50);
-  }, [products, query]);
+  useEffect(() => {
+    if (!draft.advisor?.trim() && user?.nombre) {
+      setDraft((d) => ({ ...d, advisor: user.nombre }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.nombre]);
 
-  function addLine(product: Producto) {
-    setDraft((d) => {
-      const existing = d.lines.find((l) => l.product.id === product.id);
+  const computedLines = useMemo(() => {
+    return recalcAllLines(lines, draft.costoTotalDestino);
+  }, [lines, draft.costoTotalDestino]);
+
+  const totals = useMemo(() => calcTotals(computedLines), [computedLines]);
+
+  function findByReference(ref: string) {
+    const cleaned = ref.trim();
+    if (!cleaned) return null;
+
+    const exact = products.find((p) => String(p.codigo_producto).trim() === cleaned);
+    if (exact) return exact;
+
+    return (
+      products.find((p) =>
+        String(p.codigo_producto).toLowerCase().includes(cleaned.toLowerCase())
+      ) ?? null
+    );
+  }
+
+  function addLineByReference() {
+    const ref = refInput.trim();
+    if (!ref) return;
+
+    const product = findByReference(ref);
+    if (!product) {
+      setLineError(`No encontré la referencia "${ref}" en la base de datos.`);
+      return;
+    }
+
+    setLineError(null);
+
+    setLines((prev) => {
+      const existing = prev.find((l) => l.product.id === product.id);
       if (existing) {
-        return {
-          ...d,
-          lines: d.lines.map((l) =>
-            l.product.id === product.id ? { ...l, qty: l.qty + 1 } : l
-          )
-        };
+        return prev.map((l) =>
+          l.product.id === product.id ? { ...l, qty: l.qty + 1 } : l
+        );
       }
-      const suggested = calcSuggestedSale(product);
-      const newLine: QuoteLine = { product, qty: 1, salePrice: suggested };
-      return { ...d, lines: [newLine, ...d.lines] };
+      const itemNo = prev.length + 1;
+      return [...prev, buildLineFromProduct({ product, itemNo, qty: 1 })];
     });
+
+    setRefInput("");
   }
 
-  function updateQty(productId: number, qty: number) {
+  function updateLine(id: string, patch: Partial<QuoteLineV2>) {
+    setLines((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
+  }
+
+  function removeLine(id: string) {
+    setLines((prev) => prev.filter((l) => l.id !== id));
+  }
+
+  function clearAll() {
     setDraft((d) => ({
       ...d,
-      lines: d.lines.map((l) => (l.product.id === productId ? { ...l, qty } : l))
+      quoteNumber: "",
+      title: "",
+      account: "",
+      advisor: user?.nombre ?? "",
+      paymentTerms: "Anticipo 30% - Restante con Factura a 30 días",
+      stage: "Borrador",
+      quoteType: "Normal",
+      projectName: "",
+      contactName: "",
+      validUntil: "",
+      deliveryTime: "",
+      opportunity: "",
+      notes: "",
+      city: "",
+      costoTotalDestino: 0
     }));
+    setLines([]);
+    setRefInput("");
+    setLineError(null);
+    setErr(null);
   }
 
-  function updateSalePrice(productId: number, salePrice: number) {
-    setDraft((d) => ({
-      ...d,
-      lines: d.lines.map((l) => (l.product.id === productId ? { ...l, salePrice } : l))
-    }));
+  async function onGeneratePdf() {
+    try {
+      setPdfLoading(true);
+      const templateDataUrl = await getDefaultQuoteTemplateDataUrl();
+      generateQuotePdf({
+        draft,
+        lines: computedLines,
+        totals,
+        templateDataUrl,
+        showSensitive: allowSensitive
+      });
+    } catch (e: any) {
+      setErr(e?.message ?? "No se pudo generar el PDF");
+    } finally {
+      setPdfLoading(false);
+    }
   }
 
-  function removeLine(productId: number) {
-    setDraft((d) => ({ ...d, lines: d.lines.filter((l) => l.product.id !== productId) }));
+  function onSave() {
+    if (!draft.title.trim()) {
+      setErr("El campo Título es obligatorio.");
+      return;
+    }
+    setErr(null);
+    alert("OK: luego conectamos este Guardar a tu API.");
   }
 
-  const totals = useMemo(() => {
-    const subtotal = draft.lines.reduce((acc, l) => acc + l.qty * (l.salePrice || 0), 0);
-    const iva = subtotal * 0.19;
-    const total = subtotal + iva;
+  function onCancel() {
+    clearAll();
+  }
 
-    // margen aproximado (si tenemos costo_ingear y permisos)
-    const cost = draft.lines.reduce((acc, l) => acc + l.qty * toNumber(l.product.costo_ingear), 0);
-    const gross = subtotal - cost;
-    const marginPct = subtotal ? (gross / subtotal) * 100 : 0;
-
-    return { subtotal, iva, total, cost, gross, marginPct };
-  }, [draft.lines]);
+  const showCotizador = tab === "COTIZADOR";
+  const showDireccion = tab === "DIRECCION";
+  const showVision = tab === "VISION_GLOBAL";
 
   return (
-    <div className="grid2">
-      <div className="card">
-        <h3>Datos de la cotización (borrador)</h3>
-
-        <div className="formGrid">
-          <label>
-            Cliente
-            <input
-              value={draft.customerName}
-              onChange={(e) => setDraft((d) => ({ ...d, customerName: e.target.value }))}
-              placeholder="Razón social"
-            />
-          </label>
-
-          <label>
-            Proyecto
-            <input
-              value={draft.projectName}
-              onChange={(e) => setDraft((d) => ({ ...d, projectName: e.target.value }))}
-              placeholder="Nombre del proyecto"
-            />
-          </label>
-
-          <label>
-            Ciudad
-            <input
-              value={draft.city}
-              onChange={(e) => setDraft((d) => ({ ...d, city: e.target.value }))}
-              placeholder="Medellín"
-            />
-          </label>
-
-          <label className="span2">
-            Observaciones
-            <textarea
-              value={draft.notes}
-              onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))}
-              placeholder="Notas internas / condiciones"
-              rows={3}
-            />
-          </label>
+    <div>
+      {/* Header superior */}
+      <div className="rowLine" style={{ justifyContent: "space-between", alignItems: "flex-end" }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: 28 }}>Crear</h1>
         </div>
+        <div className="row" style={{ gap: 10 }}>
+          <button className="btn" onClick={onSave}>GUARDAR</button>
+          <button className="btn" onClick={onCancel}>CANCELAR</button>
+        </div>
+      </div>
 
-        <div className="cardSub">
-          <h4>Resumen</h4>
+      {/* Tabs */}
+      <div className="row" style={{ marginTop: 14, gap: 10, flexWrap: "wrap" }}>
+        <button className="chip" onClick={() => setTab("VISION_GLOBAL")}>Visión Global</button>
+        <button className="chip" onClick={() => setTab("DIRECCION")}>Información de Dirección</button>
+        <button className="chip" onClick={() => setTab("COTIZADOR")}>Cotizador</button>
+      </div>
+
+      {loading && <p style={{ marginTop: 12 }}>Cargando productos…</p>}
+      {err && <div className="error">{err}</div>}
+
+      {showVision && (
+        <div className="module" style={{ marginTop: 14 }}>
+          <h3>Visión Global</h3>
           <div className="kv">
-            <div>Subtotal</div>
-            <div>{formatCOP(totals.subtotal)}</div>
-
-            <div>IVA (19%)</div>
-            <div>{formatCOP(totals.iva)}</div>
-
-            <div className="strong">Total</div>
-            <div className="strong">{formatCOP(totals.total)}</div>
-
-            {allowSensitive && (
-              <>
-                <div>Costo (aprox)</div>
-                <div>{formatCOP(totals.cost)}</div>
-
-                <div>Utilidad bruta (aprox)</div>
-                <div>{formatCOP(totals.gross)}</div>
-
-                <div>Margen (%)</div>
-                <div>{totals.marginPct.toFixed(2)}%</div>
-              </>
-            )}
+            <span>Ítems</span><b>{computedLines.length}</b>
+            <span>Subtotal</span><b>{formatCOP(totals.subtotal)}</b>
+            <span>IVA</span><b>{formatCOP(totals.iva)}</b>
+            <span>Total</span><b>{formatCOP(totals.total)}</b>
           </div>
-          {!allowSensitive && (
-            <div className="hint">
-              * Tu rol no permite ver costos/descuentos/márgenes. (Esto se controla por rol.)
+        </div>
+      )}
+
+      {showDireccion && (
+        <div className="module" style={{ marginTop: 14 }}>
+          <h3>Información de Dirección</h3>
+          <div className="formGrid" style={{ marginTop: 10 }}>
+            <label>
+              Ciudad
+              <input
+                className="input"
+                value={draft.city ?? ""}
+                onChange={(e) => setDraft((d) => ({ ...d, city: e.target.value }))}
+                placeholder="Medellín"
+              />
+            </label>
+          </div>
+        </div>
+      )}
+
+      {showCotizador && (
+        <>
+          <div className="module" style={{ marginTop: 14 }}>
+            <h3>Datos de la cotización</h3>
+
+            <div className="formGrid" style={{ marginTop: 10 }}>
+              <label>
+                Número de Cotización
+                <input
+                  className="input"
+                  value={draft.quoteNumber}
+                  onChange={(e) => setDraft((d) => ({ ...d, quoteNumber: e.target.value }))}
+                  placeholder="Ej: COT-000123"
+                />
+              </label>
+
+              <label>
+                Proyecto
+                <input
+                  className="input"
+                  value={draft.projectName}
+                  onChange={(e) => setDraft((d) => ({ ...d, projectName: e.target.value }))}
+                  placeholder="Nombre del proyecto"
+                />
+              </label>
+
+              <label className="span2">
+                Título <span style={{ color: "#fb7185" }}>*</span>
+                <input
+                  className="input"
+                  value={draft.title}
+                  onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
+                  placeholder="Título de la cotización"
+                />
+              </label>
+
+              <label>
+                Cuenta
+                <input
+                  className="input"
+                  value={draft.account}
+                  onChange={(e) => setDraft((d) => ({ ...d, account: e.target.value }))}
+                  placeholder="Cliente / Cuenta"
+                />
+              </label>
+
+              <label>
+                Contacto
+                <input
+                  className="input"
+                  value={draft.contactName}
+                  onChange={(e) => setDraft((d) => ({ ...d, contactName: e.target.value }))}
+                  placeholder="Nombre del contacto"
+                />
+              </label>
+
+              <label>
+                Asesor
+                <input
+                  className="input"
+                  value={draft.advisor}
+                  onChange={(e) => setDraft((d) => ({ ...d, advisor: e.target.value }))}
+                  placeholder="Asesor responsable"
+                />
+              </label>
+
+              <label>
+                Válida Hasta <span style={{ color: "#fb7185" }}>*</span>
+                <input
+                  className="input"
+                  type="date"
+                  value={draft.validUntil}
+                  onChange={(e) => setDraft((d) => ({ ...d, validUntil: e.target.value }))}
+                />
+              </label>
+
+              {/* ✅ Forma de Pago: menú según imagen */}
+              <label>
+                Forma de Pago
+                <select
+                  className="input"
+                  value={draft.paymentTerms}
+                  onChange={(e) => setDraft((d) => ({ ...d, paymentTerms: e.target.value }))}
+                >
+                  {PAYMENT_TERMS.map((x) => (
+                    <option key={x} value={x}>{x}</option>
+                  ))}
+                </select>
+              </label>
+
+              {/* ✅ Tiempo de Entrega: menú según imagen */}
+              <label>
+                Tiempo de Entrega <span style={{ color: "#fb7185" }}>*</span>
+                <select
+                  className="input"
+                  value={draft.deliveryTime}
+                  onChange={(e) => setDraft((d) => ({ ...d, deliveryTime: e.target.value }))}
+                >
+                  <option value="">(Selecciona)</option>
+                  {DELIVERY_TIMES.map((x) => (
+                    <option key={x} value={x}>{x}</option>
+                  ))}
+                </select>
+              </label>
+
+              {/* ✅ Etapa: menú según imagen */}
+              <label>
+                Etapa de Cotización <span style={{ color: "#fb7185" }}>*</span>
+                <select
+                  className="input"
+                  value={draft.stage}
+                  onChange={(e) => setDraft((d) => ({ ...d, stage: e.target.value }))}
+                >
+                  {STAGES.map((x) => (
+                    <option key={x} value={x}>{x}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                Oportunidad
+                <input
+                  className="input"
+                  value={draft.opportunity}
+                  onChange={(e) => setDraft((d) => ({ ...d, opportunity: e.target.value }))}
+                  placeholder="Ej: OPP-00045"
+                />
+              </label>
+
+              {/* ✅ Tipo Cotización: menú según imagen */}
+              <label>
+                Tipo Cotización <span style={{ color: "#fb7185" }}>*</span>
+                <select
+                  className="input"
+                  value={draft.quoteType}
+                  onChange={(e) => setDraft((d) => ({ ...d, quoteType: e.target.value }))}
+                >
+                  {QUOTE_TYPES.map((x) => (
+                    <option key={x} value={x}>{x}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="span2">
+                Notas
+                <textarea
+                  className="input"
+                  style={{ minHeight: 120, resize: "vertical" }}
+                  value={draft.notes}
+                  onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))}
+                  placeholder="Notas / condiciones / observaciones"
+                />
+              </label>
+
+              {allowSensitive && (
+                <label>
+                  Costo total destino (para transporte)
+                  <input
+                    className="input"
+                    type="number"
+                    value={draft.costoTotalDestino}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, costoTotalDestino: Number(e.target.value || 0) }))
+                    }
+                    placeholder="0"
+                  />
+                </label>
+              )}
             </div>
-          )}
-        </div>
+          </div>
 
-        <div className="hint">
-          Esta pantalla es UI base del cotizador. La creación de cotizaciones en BD la activamos cuando tu
-          API tenga `id_proyecto` en el schema de Cotización. :contentReference[oaicite:2]{index=2}
-        </div>
-      </div>
+          {/* Agregar ítem por referencia */}
+          <div className="module" style={{ marginTop: 14 }}>
+            <div className="rowLine">
+              <div>
+                <h3>Agregar ítem por Referencia</h3>
+                <p>Escribe la referencia y presiona agregar.</p>
+              </div>
 
-      <div className="card">
-        <h3>Catálogo de productos</h3>
+              <div className="row" style={{ gap: 10 }}>
+                <input
+                  className="input"
+                  value={refInput}
+                  onChange={(e) => setRefInput(e.target.value)}
+                  placeholder="Referencia (código producto)"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") addLineByReference();
+                  }}
+                  style={{ minWidth: 320 }}
+                />
+                <button className="btn" onClick={addLineByReference}>+ Agregar</button>
+              </div>
+            </div>
 
-        <div className="row">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar por código, marca o descripción..."
-          />
-          <div className="pill">{products.length} productos</div>
-        </div>
+            {lineError && <div className="error">{lineError}</div>}
 
-        {loading && <p className="muted">Cargando...</p>}
-        {err && <div className="error">{err}</div>}
+            <div className="tableWrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Ítem</th>
+                    <th>Marca</th>
+                    <th>Referencia</th>
+                    <th>Descripción</th>
+                    <th>Qty</th>
+                    <th>Vr Unitario</th>
+                    <th>Vr Total</th>
 
-        <div className="tableWrap">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Código</th>
-                <th>Marca</th>
-                <th>Descripción</th>
-                <th>Inventario</th>
-                {allowSensitive && <th>Costo Ingear</th>}
-                <th>Agregar</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.codigo_producto}</td>
-                  <td>{p.marca ?? "-"}</td>
-                  <td className="tdWrap">{p.descripcion ?? "-"}</td>
-                  <td>{p.cantidad_inventario ?? 0}</td>
-                  {allowSensitive && <td>{formatCOP(toNumber(p.costo_ingear))}</td>}
-                  <td>
-                    <button className="btn" onClick={() => addLine(p)}>
-                      + Añadir
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {!loading && filtered.length === 0 && (
-                <tr>
-                  <td colSpan={allowSensitive ? 6 : 5} className="muted">
-                    Sin resultados.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                    {allowSensitive && <th>Costo Origen</th>}
+                    {allowSensitive && <th>Costo Col</th>}
+                    {allowSensitive && <th>Margen (T)</th>}
 
-        <h3 style={{ marginTop: 18 }}>Items de cotización</h3>
-        <div className="tableWrap">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th>Cant.</th>
-                <th>Precio venta</th>
-                {allowSensitive && <th>Costo</th>}
-                {allowSensitive && <th>Utilidad</th>}
-                <th>Subtotal</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {draft.lines.map((l) => {
-                const sub = l.qty * (l.salePrice || 0);
-                const cost = l.qty * toNumber(l.product.costo_ingear);
-                const profit = sub - cost;
-
-                return (
-                  <tr key={l.product.id}>
-                    <td>
-                      <div className="strong">{l.product.codigo_producto}</div>
-                      <div className="muted">{l.product.descripcion ?? ""}</div>
-                    </td>
-                    <td style={{ width: 90 }}>
-                      <input
-                        type="number"
-                        min={1}
-                        value={l.qty}
-                        onChange={(e) => updateQty(l.product.id, Math.max(1, Number(e.target.value)))}
-                      />
-                    </td>
-                    <td style={{ width: 160 }}>
-                      <input
-                        type="number"
-                        min={0}
-                        value={l.salePrice}
-                        onChange={(e) => updateSalePrice(l.product.id, Number(e.target.value))}
-                      />
-                    </td>
-
-                    {allowSensitive && <td>{formatCOP(cost)}</td>}
-                    {allowSensitive && <td>{formatCOP(profit)}</td>}
-
-                    <td>{formatCOP(sub)}</td>
-                    <td style={{ width: 90 }}>
-                      <button className="btnDanger" onClick={() => removeLine(l.product.id)}>
-                        Quitar
-                      </button>
-                    </td>
+                    <th></th>
                   </tr>
-                );
-              })}
+                </thead>
 
-              {draft.lines.length === 0 && (
-                <tr>
-                  <td colSpan={allowSensitive ? 7 : 5} className="muted">
-                    Agrega productos desde el catálogo.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                <tbody>
+                  {computedLines.length === 0 ? (
+                    <tr>
+                      <td colSpan={allowSensitive ? 11 : 8} style={{ color: "var(--muted)" }}>
+                        Agrega ítems escribiendo la referencia.
+                      </td>
+                    </tr>
+                  ) : (
+                    computedLines.map((l) => (
+                      <tr key={l.id}>
+                        <td>{l.itemNo}</td>
+                        <td>{l.product.marca}</td>
+                        <td>{l.product.codigo_producto}</td>
+                        <td className="tdWrap">{l.product.descripcion}</td>
 
-        <div className="row" style={{ justifyContent: "flex-end", marginTop: 12 }}>
-          <button className="btn" onClick={() => setDraft((d) => ({ ...d, lines: [] }))}>
-            Limpiar
-          </button>
-          <button className="btnPrimary" disabled>
-            Guardar cotización (pendiente API)
-          </button>
-        </div>
-      </div>
+                        <td>
+                          <input
+                            className="input"
+                            type="number"
+                            value={l.qty}
+                            min={1}
+                            onChange={(e) => updateLine(l.id, { qty: Number(e.target.value || 1) })}
+                            style={{ width: 80 }}
+                          />
+                        </td>
+
+                        <td>{formatCOP(l.vrUnitario)}</td>
+                        <td>{formatCOP(l.vrTotal)}</td>
+
+                        {allowSensitive && <td>{formatCOP(l.costoOrigen)}</td>}
+                        {allowSensitive && <td>{formatCOP(l.costoCol)}</td>}
+                        {allowSensitive && (
+                          <td>
+                            <input
+                              className="input"
+                              type="number"
+                              step="0.01"
+                              value={l.margenFactor}
+                              onChange={(e) =>
+                                updateLine(l.id, { margenFactor: Number(e.target.value || 0) })
+                              }
+                              style={{ width: 90 }}
+                            />
+                          </td>
+                        )}
+
+                        <td>
+                          <button className="btn" onClick={() => removeLine(l.id)}>
+                            Quitar
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <p style={{ marginTop: 8, color: "var(--muted)", fontSize: 12 }}>
+              * Columnas comunes visibles para todos. Columnas sensibles solo aparecen si tu rol permite ver costos/márgenes.
+            </p>
+          </div>
+
+          {/* Resumen */}
+          <div className="module" style={{ marginTop: 14 }}>
+            <div className="rowLine">
+              <div>
+                <h3>Resumen</h3>
+                <p>Totales calculados.</p>
+              </div>
+
+              <div className="row" style={{ gap: 10 }}>
+                <button className="btn" onClick={clearAll}>Limpiar</button>
+                <button className="btn" onClick={onGeneratePdf} disabled={pdfLoading}>
+                  {pdfLoading ? "Generando..." : "Generar PDF"}
+                </button>
+              </div>
+            </div>
+
+            <div className="kv">
+              <span>Subtotal</span><b>{formatCOP(totals.subtotal)}</b>
+              <span>IVA (19%)</span><b>{formatCOP(totals.iva)}</b>
+              <span>Total</span><b>{formatCOP(totals.total)}</b>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
