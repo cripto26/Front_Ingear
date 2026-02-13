@@ -430,3 +430,30 @@ select option {
   background: #0b1220;
   color: rgba(255,255,255,0.92);
 }
+
+/* Fuerza controles nativos en modo oscuro (select, date) */
+:root { color-scheme: dark; }
+
+/* Igualar select y date con el tema */
+select,
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  background-color: rgba(255,255,255,0.05) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 12px !important;
+}
+
+/* Ícono del datepicker en Chrome/Edge */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.75;
+}
+
+/* Si el navegador insiste con el blanco en el select cerrado */
+select {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+}

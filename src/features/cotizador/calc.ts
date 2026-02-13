@@ -4,48 +4,61 @@ import type { QuoteLineV2, QuoteTotals } from "./cotizadorTypes";
 import { toNumber } from "../../lib/money";
 
 export function getCostoOrigen(product: Producto): number {
-  // Ajuste: en tu Excel "COSTO ORIGEN" suele ser costo_fabrica.
+  // En tu Excel "COSTO ORIGEN" suele ser costo_fabrica.
   // Si no existe, cae a costo_ingear.
   const cf = toNumber(product.costo_fabrica);
   const ci = toNumber(product.costo_ingear);
   return cf || ci || 0;
 }
 
+/**
+ * Volumen:
+ * - En tu BD existe "volumen" (numeric).
+ * - Si viene, lo usamos como volumen base por unidad.
+ */
+export function getVolumenUnit(product: Producto): number {
+  return Math.max(0, toNumber(product.volumen));
+}
+
 export function buildLineFromProduct(args: {
   product: Producto;
   itemNo: number;
   qty?: number;
-  volumenCm3?: number;    // si tu API lo trae después, lo mapearás aquí
-  margenFactor?: number;  // default 0.70 como plantilla
+  volumenCm3?: number; // permite override manual
+  margenFactor?: number; // default 0.70 como plantilla
 }): QuoteLineV2 {
   const qty = Math.max(1, args.qty ?? 1);
   const costoOrigen = getCostoOrigen(args.product);
-  const volumen = Math.max(0, args.volumenCm3 ?? 0);
+
+  // si no mandan volumen manual, usa el del producto
+  const baseVolumen = args.volumenCm3 ?? getVolumenUnit(args.product);
+  const volumen = Math.max(0, baseVolumen);
+
   const margenFactor = args.margenFactor ?? 0.7;
 
-  // Inicialmente calculamos lo que NO depende del total de O (peso %)
-  const costoOrigenTotal = costoOrigen * qty;  // O
-  const totalVolumen = volumen * qty;          // N
+  // O y N en tu lógica actual
+  const costoOrigenTotal = costoOrigen * qty; // O
+  const totalVolumen = volumen * qty; // N
 
-  // Los demás se completan en recalcAllLines()
   return {
     id: crypto.randomUUID?.() ?? String(Date.now() + Math.random()),
     itemNo: args.itemNo,
     product: args.product,
     qty,
+
     volumenCm3: volumen,
     margenFactor,
 
-    costoOrigen,            // L
-    totalVolumen,           // N
-    costoOrigenTotal,       // O
-    pesoPct: 0,             // P
-    costoTransporteGrupo: 0,// Q
+    costoOrigen, // L
+    totalVolumen, // N
+    costoOrigenTotal, // O
+    pesoPct: 0, // P
+    costoTransporteGrupo: 0, // Q
     costoTransporteUnit: 0, // R
-    costoCol: 0,            // S
-    vrVenta: 0,             // U
-    vrUnitario: 0,          // I
-    vrTotal: 0              // J
+    costoCol: 0, // S
+    vrVenta: 0, // U
+    vrUnitario: 0, // I
+    vrTotal: 0 // J
   };
 }
 
@@ -53,21 +66,21 @@ export function recalcAllLines(lines: QuoteLineV2[], costoTotalDestino: number):
   const sumO = lines.reduce((acc, l) => acc + (l.costoOrigenTotal || 0), 0);
 
   return lines.map((l) => {
-    const costoOrigenTotal = l.costoOrigen * l.qty;     // O
-    const totalVolumen = l.volumenCm3 * l.qty;          // N
+    const costoOrigenTotal = l.costoOrigen * l.qty; // O
+    const totalVolumen = l.volumenCm3 * l.qty; // N
 
-    const pesoPct = sumO > 0 ? costoOrigenTotal / sumO : 0;        // P
-    const costoTransporteGrupo = pesoPct * (costoTotalDestino || 0);// Q
+    const pesoPct = sumO > 0 ? costoOrigenTotal / sumO : 0; // P
+    const costoTransporteGrupo = pesoPct * (costoTotalDestino || 0); // Q
     const costoTransporteUnit = l.qty > 0 ? costoTransporteGrupo / l.qty : 0; // R
 
     const costoCol = l.costoOrigen + costoTransporteUnit; // S
-    const margenFactor = l.margenFactor || 0.7;           // T
+    const margenFactor = l.margenFactor || 0.7; // T
 
     // U = S / T (según tu plantilla)
     const vrVenta = margenFactor > 0 ? costoCol / margenFactor : 0;
 
-    const vrUnitario = vrVenta;                    // I = U
-    const vrTotal = l.qty * vrUnitario;            // J = H*I
+    const vrUnitario = vrVenta; // I = U
+    const vrTotal = l.qty * vrUnitario; // J = H*I
 
     return {
       ...l,

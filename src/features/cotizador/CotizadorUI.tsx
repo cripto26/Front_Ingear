@@ -1,6 +1,6 @@
 // src/features/cotizador/CotizadorUI.tsx
 import { useEffect, useMemo, useState } from "react";
-import { listProductos, type Producto } from "../../api/productoApi";
+import { listProductosAll, type Producto } from "../../api/productoApi";
 import { formatCOP } from "../../lib/money";
 import { useAuth } from "../../auth/AuthContext";
 import { canViewSensitivePricing } from "./rules";
@@ -23,7 +23,7 @@ const PAYMENT_TERMS = [
   "Restante 50% previa entrega",
   "Restante con Factura a 45 días",
   "Restante con Factura a 60 días",
-  "Anticipo 50% - Restante Previa Entrega"
+  "Anticipo 50% - Restante Previa Entrega",
 ];
 
 const STAGES = [
@@ -35,7 +35,7 @@ const STAGES = [
   "Ganada",
   "Ganada Parcial",
   "Perdido",
-  "Cerrado Muerto"
+  "Cerrado Muerto",
 ];
 
 const QUOTE_TYPES = ["Normal", "Licitación"];
@@ -55,7 +55,7 @@ const DELIVERY_TIMES = [
   "60 Días Calendario",
   "45 Días Calendario",
   "30 Días Calendario",
-  "A Convenir"
+  "A Convenir",
 ];
 
 export default function CotizadorUI() {
@@ -68,7 +68,7 @@ export default function CotizadorUI() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
-  const [refInput, setRefInput] = useState("");
+  const [codigoInput, setCodigoInput] = useState("");
   const [lineError, setLineError] = useState<string | null>(null);
 
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -95,16 +95,18 @@ export default function CotizadorUI() {
     notes: "",
 
     city: "",
-    costoTotalDestino: 0
+    costoTotalDestino: 0,
   });
 
   const [lines, setLines] = useState<QuoteLineV2[]>([]);
 
+  // ✅ Cargar TODOS los productos (para que el search por codigo_producto funcione en 10k+)
   useEffect(() => {
     (async () => {
       try {
         setLoading(true);
-        const data = await listProductos();
+        setErr(null);
+        const data = await listProductosAll();
         setProducts(data);
       } catch (e: any) {
         setErr(e?.message ?? "No se pudo cargar productos");
@@ -127,27 +129,38 @@ export default function CotizadorUI() {
 
   const totals = useMemo(() => calcTotals(computedLines), [computedLines]);
 
-  function findByReference(ref: string) {
-    const cleaned = ref.trim();
+  function normalizeCode(v: string) {
+    return v.trim();
+  }
+
+  function findByCodigoProducto(code: string) {
+    const cleaned = normalizeCode(code);
     if (!cleaned) return null;
 
-    const exact = products.find((p) => String(p.codigo_producto).trim() === cleaned);
+    // exact
+    const exact = products.find(
+      (p) => String(p.codigo_producto ?? "").trim() === cleaned
+    );
     if (exact) return exact;
 
+    // contains / case-insensitive
+    const lowered = cleaned.toLowerCase();
     return (
       products.find((p) =>
-        String(p.codigo_producto).toLowerCase().includes(cleaned.toLowerCase())
+        String(p.codigo_producto ?? "").toLowerCase().includes(lowered)
       ) ?? null
     );
   }
 
-  function addLineByReference() {
-    const ref = refInput.trim();
-    if (!ref) return;
+  function addLineByCodigoProducto() {
+    const code = normalizeCode(codigoInput);
+    if (!code) return;
 
-    const product = findByReference(ref);
+    const product = findByCodigoProducto(code);
     if (!product) {
-      setLineError(`No encontré la referencia "${ref}" en la base de datos.`);
+      setLineError(
+        `No encontré el producto con código "${code}" en la base de datos. Asegúrate de pegar el valor de la columna codigo_producto (no la referencia).`
+      );
       return;
     }
 
@@ -164,7 +177,7 @@ export default function CotizadorUI() {
       return [...prev, buildLineFromProduct({ product, itemNo, qty: 1 })];
     });
 
-    setRefInput("");
+    setCodigoInput("");
   }
 
   function updateLine(id: string, patch: Partial<QuoteLineV2>) {
@@ -192,10 +205,10 @@ export default function CotizadorUI() {
       opportunity: "",
       notes: "",
       city: "",
-      costoTotalDestino: 0
+      costoTotalDestino: 0,
     }));
     setLines([]);
-    setRefInput("");
+    setCodigoInput("");
     setLineError(null);
     setErr(null);
   }
@@ -203,13 +216,17 @@ export default function CotizadorUI() {
   async function onGeneratePdf() {
     try {
       setPdfLoading(true);
+      setErr(null);
+
       const templateDataUrl = await getDefaultQuoteTemplateDataUrl();
-      generateQuotePdf({
+
+      await generateQuotePdf({
         draft,
         lines: computedLines,
         totals,
-        templateDataUrl,
-        showSensitive: allowSensitive
+        // ✅ evita error TS si el tipo espera string | undefined
+        templateDataUrl: templateDataUrl ?? undefined,
+        showSensitive: allowSensitive,
       });
     } catch (e: any) {
       setErr(e?.message ?? "No se pudo generar el PDF");
@@ -238,21 +255,34 @@ export default function CotizadorUI() {
   return (
     <div>
       {/* Header superior */}
-      <div className="rowLine" style={{ justifyContent: "space-between", alignItems: "flex-end" }}>
+      <div
+        className="rowLine"
+        style={{ justifyContent: "space-between", alignItems: "flex-end" }}
+      >
         <div>
           <h1 style={{ margin: 0, fontSize: 28 }}>Crear</h1>
         </div>
         <div className="row" style={{ gap: 10 }}>
-          <button className="btn" onClick={onSave}>GUARDAR</button>
-          <button className="btn" onClick={onCancel}>CANCELAR</button>
+          <button className="btn" onClick={onSave}>
+            GUARDAR
+          </button>
+          <button className="btn" onClick={onCancel}>
+            CANCELAR
+          </button>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="row" style={{ marginTop: 14, gap: 10, flexWrap: "wrap" }}>
-        <button className="chip" onClick={() => setTab("VISION_GLOBAL")}>Visión Global</button>
-        <button className="chip" onClick={() => setTab("DIRECCION")}>Información de Dirección</button>
-        <button className="chip" onClick={() => setTab("COTIZADOR")}>Cotizador</button>
+        <button className="chip" onClick={() => setTab("VISION_GLOBAL")}>
+          Visión Global
+        </button>
+        <button className="chip" onClick={() => setTab("DIRECCION")}>
+          Información de Dirección
+        </button>
+        <button className="chip" onClick={() => setTab("COTIZADOR")}>
+          Cotizador
+        </button>
       </div>
 
       {loading && <p style={{ marginTop: 12 }}>Cargando productos…</p>}
@@ -262,10 +292,17 @@ export default function CotizadorUI() {
         <div className="module" style={{ marginTop: 14 }}>
           <h3>Visión Global</h3>
           <div className="kv">
-            <span>Ítems</span><b>{computedLines.length}</b>
-            <span>Subtotal</span><b>{formatCOP(totals.subtotal)}</b>
-            <span>IVA</span><b>{formatCOP(totals.iva)}</b>
-            <span>Total</span><b>{formatCOP(totals.total)}</b>
+            <span>Ítems</span>
+            <b>{computedLines.length}</b>
+
+            <span>Subtotal</span>
+            <b>{formatCOP(totals.subtotal)}</b>
+
+            <span>IVA</span>
+            <b>{formatCOP(totals.iva)}</b>
+
+            <span>Total</span>
+            <b>{formatCOP(totals.total)}</b>
           </div>
         </div>
       )}
@@ -298,7 +335,9 @@ export default function CotizadorUI() {
                 <input
                   className="input"
                   value={draft.quoteNumber}
-                  onChange={(e) => setDraft((d) => ({ ...d, quoteNumber: e.target.value }))}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, quoteNumber: e.target.value }))
+                  }
                   placeholder="Ej: COT-000123"
                 />
               </label>
@@ -308,7 +347,9 @@ export default function CotizadorUI() {
                 <input
                   className="input"
                   value={draft.projectName}
-                  onChange={(e) => setDraft((d) => ({ ...d, projectName: e.target.value }))}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, projectName: e.target.value }))
+                  }
                   placeholder="Nombre del proyecto"
                 />
               </label>
@@ -328,7 +369,9 @@ export default function CotizadorUI() {
                 <input
                   className="input"
                   value={draft.account}
-                  onChange={(e) => setDraft((d) => ({ ...d, account: e.target.value }))}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, account: e.target.value }))
+                  }
                   placeholder="Cliente / Cuenta"
                 />
               </label>
@@ -338,7 +381,9 @@ export default function CotizadorUI() {
                 <input
                   className="input"
                   value={draft.contactName}
-                  onChange={(e) => setDraft((d) => ({ ...d, contactName: e.target.value }))}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, contactName: e.target.value }))
+                  }
                   placeholder="Nombre del contacto"
                 />
               </label>
@@ -348,7 +393,9 @@ export default function CotizadorUI() {
                 <input
                   className="input"
                   value={draft.advisor}
-                  onChange={(e) => setDraft((d) => ({ ...d, advisor: e.target.value }))}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, advisor: e.target.value }))
+                  }
                   placeholder="Asesor responsable"
                 />
               </label>
@@ -359,40 +406,50 @@ export default function CotizadorUI() {
                   className="input"
                   type="date"
                   value={draft.validUntil}
-                  onChange={(e) => setDraft((d) => ({ ...d, validUntil: e.target.value }))}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, validUntil: e.target.value }))
+                  }
                 />
               </label>
 
-              {/* ✅ Forma de Pago: menú según imagen */}
+              {/* ✅ Forma de Pago */}
               <label>
                 Forma de Pago
                 <select
                   className="input"
                   value={draft.paymentTerms}
-                  onChange={(e) => setDraft((d) => ({ ...d, paymentTerms: e.target.value }))}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, paymentTerms: e.target.value }))
+                  }
                 >
                   {PAYMENT_TERMS.map((x) => (
-                    <option key={x} value={x}>{x}</option>
+                    <option key={x} value={x}>
+                      {x}
+                    </option>
                   ))}
                 </select>
               </label>
 
-              {/* ✅ Tiempo de Entrega: menú según imagen */}
+              {/* ✅ Tiempo de Entrega */}
               <label>
                 Tiempo de Entrega <span style={{ color: "#fb7185" }}>*</span>
                 <select
                   className="input"
                   value={draft.deliveryTime}
-                  onChange={(e) => setDraft((d) => ({ ...d, deliveryTime: e.target.value }))}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, deliveryTime: e.target.value }))
+                  }
                 >
                   <option value="">(Selecciona)</option>
                   {DELIVERY_TIMES.map((x) => (
-                    <option key={x} value={x}>{x}</option>
+                    <option key={x} value={x}>
+                      {x}
+                    </option>
                   ))}
                 </select>
               </label>
 
-              {/* ✅ Etapa: menú según imagen */}
+              {/* ✅ Etapa */}
               <label>
                 Etapa de Cotización <span style={{ color: "#fb7185" }}>*</span>
                 <select
@@ -401,7 +458,9 @@ export default function CotizadorUI() {
                   onChange={(e) => setDraft((d) => ({ ...d, stage: e.target.value }))}
                 >
                   {STAGES.map((x) => (
-                    <option key={x} value={x}>{x}</option>
+                    <option key={x} value={x}>
+                      {x}
+                    </option>
                   ))}
                 </select>
               </label>
@@ -411,21 +470,27 @@ export default function CotizadorUI() {
                 <input
                   className="input"
                   value={draft.opportunity}
-                  onChange={(e) => setDraft((d) => ({ ...d, opportunity: e.target.value }))}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, opportunity: e.target.value }))
+                  }
                   placeholder="Ej: OPP-00045"
                 />
               </label>
 
-              {/* ✅ Tipo Cotización: menú según imagen */}
+              {/* ✅ Tipo Cotización */}
               <label>
                 Tipo Cotización <span style={{ color: "#fb7185" }}>*</span>
                 <select
                   className="input"
                   value={draft.quoteType}
-                  onChange={(e) => setDraft((d) => ({ ...d, quoteType: e.target.value }))}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, quoteType: e.target.value }))
+                  }
                 >
                   {QUOTE_TYPES.map((x) => (
-                    <option key={x} value={x}>{x}</option>
+                    <option key={x} value={x}>
+                      {x}
+                    </option>
                   ))}
                 </select>
               </label>
@@ -436,7 +501,9 @@ export default function CotizadorUI() {
                   className="input"
                   style={{ minHeight: 120, resize: "vertical" }}
                   value={draft.notes}
-                  onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, notes: e.target.value }))
+                  }
                   placeholder="Notas / condiciones / observaciones"
                 />
               </label>
@@ -449,7 +516,10 @@ export default function CotizadorUI() {
                     type="number"
                     value={draft.costoTotalDestino}
                     onChange={(e) =>
-                      setDraft((d) => ({ ...d, costoTotalDestino: Number(e.target.value || 0) }))
+                      setDraft((d) => ({
+                        ...d,
+                        costoTotalDestino: Number(e.target.value || 0),
+                      }))
                     }
                     placeholder="0"
                   />
@@ -458,26 +528,28 @@ export default function CotizadorUI() {
             </div>
           </div>
 
-          {/* Agregar ítem por referencia */}
+          {/* Agregar ítem por código_producto */}
           <div className="module" style={{ marginTop: 14 }}>
             <div className="rowLine">
               <div>
-                <h3>Agregar ítem por Referencia</h3>
-                <p>Escribe la referencia y presiona agregar.</p>
+                <h3>Agregar ítem por código</h3>
+                <p>Escribe el <b>codigo_producto</b> (columna codigo_producto en Postgres) y presiona agregar.</p>
               </div>
 
               <div className="row" style={{ gap: 10 }}>
                 <input
                   className="input"
-                  value={refInput}
-                  onChange={(e) => setRefInput(e.target.value)}
-                  placeholder="Referencia (código producto)"
+                  value={codigoInput}
+                  onChange={(e) => setCodigoInput(e.target.value)}
+                  placeholder="codigo_producto (Ej: TL534B-20WW)"
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") addLineByReference();
+                    if (e.key === "Enter") addLineByCodigoProducto();
                   }}
                   style={{ minWidth: 320 }}
                 />
-                <button className="btn" onClick={addLineByReference}>+ Agregar</button>
+                <button className="btn" onClick={addLineByCodigoProducto}>
+                  + Agregar
+                </button>
               </div>
             </div>
 
@@ -489,6 +561,7 @@ export default function CotizadorUI() {
                   <tr>
                     <th>Ítem</th>
                     <th>Marca</th>
+                    <th>Código</th>
                     <th>Referencia</th>
                     <th>Descripción</th>
                     <th>Qty</th>
@@ -506,8 +579,8 @@ export default function CotizadorUI() {
                 <tbody>
                   {computedLines.length === 0 ? (
                     <tr>
-                      <td colSpan={allowSensitive ? 11 : 8} style={{ color: "var(--muted)" }}>
-                        Agrega ítems escribiendo la referencia.
+                      <td colSpan={allowSensitive ? 12 : 9} style={{ color: "var(--muted)" }}>
+                        Agrega ítems escribiendo el <b>codigo_producto</b>.
                       </td>
                     </tr>
                   ) : (
@@ -516,6 +589,7 @@ export default function CotizadorUI() {
                         <td>{l.itemNo}</td>
                         <td>{l.product.marca}</td>
                         <td>{l.product.codigo_producto}</td>
+                        <td className="tdWrap">{l.product.referencia}</td>
                         <td className="tdWrap">{l.product.descripcion}</td>
 
                         <td>
@@ -524,7 +598,9 @@ export default function CotizadorUI() {
                             type="number"
                             value={l.qty}
                             min={1}
-                            onChange={(e) => updateLine(l.id, { qty: Number(e.target.value || 1) })}
+                            onChange={(e) =>
+                              updateLine(l.id, { qty: Number(e.target.value || 1) })
+                            }
                             style={{ width: 80 }}
                           />
                         </td>
@@ -542,7 +618,9 @@ export default function CotizadorUI() {
                               step="0.01"
                               value={l.margenFactor}
                               onChange={(e) =>
-                                updateLine(l.id, { margenFactor: Number(e.target.value || 0) })
+                                updateLine(l.id, {
+                                  margenFactor: Number(e.target.value || 0),
+                                })
                               }
                               style={{ width: 90 }}
                             />
@@ -575,7 +653,9 @@ export default function CotizadorUI() {
               </div>
 
               <div className="row" style={{ gap: 10 }}>
-                <button className="btn" onClick={clearAll}>Limpiar</button>
+                <button className="btn" onClick={clearAll}>
+                  Limpiar
+                </button>
                 <button className="btn" onClick={onGeneratePdf} disabled={pdfLoading}>
                   {pdfLoading ? "Generando..." : "Generar PDF"}
                 </button>
@@ -583,9 +663,14 @@ export default function CotizadorUI() {
             </div>
 
             <div className="kv">
-              <span>Subtotal</span><b>{formatCOP(totals.subtotal)}</b>
-              <span>IVA (19%)</span><b>{formatCOP(totals.iva)}</b>
-              <span>Total</span><b>{formatCOP(totals.total)}</b>
+              <span>Subtotal</span>
+              <b>{formatCOP(totals.subtotal)}</b>
+
+              <span>IVA (19%)</span>
+              <b>{formatCOP(totals.iva)}</b>
+
+              <span>Total</span>
+              <b>{formatCOP(totals.total)}</b>
             </div>
           </div>
         </>
